@@ -10,9 +10,9 @@ class Simulation:
     def __init__(self):
         self.N=50 #number of particles
         self.dT=1 #time step
-        self.T=50 #temperature
+        self.T=50 #temperature in Kelvin
         self.k=constants.k #Boltzmann constant
-        self.m=32*constants.atomic_mass #mass of one molecular of oxygen
+        self.m=32*constants.atomic_mass #mass of one molecule of oxygen in kg
         self.effectiveDiamter=2 #temp number, need to research effective diameter of oxygen
         self.numberDensity=2 #temp number, need to research number density for oxygen
 
@@ -24,7 +24,7 @@ class Simulation:
     def meanPathLength(self):
         return 1/(np.sqrt(2)*constants.pi*(self.effectiveDiamter**2)*self.numberDensity)
 
-    #can improve beyond using basic Euler method
+    #can improve beyond using basic Euler method - Runge Kutta method
     def update(self):
         self.positions+=np.dot(self.velocities, self.dT)
 
