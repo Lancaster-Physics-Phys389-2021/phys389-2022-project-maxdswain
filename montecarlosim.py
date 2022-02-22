@@ -6,17 +6,23 @@ from scipy import constants
 #maybe split into simulation, walls and particles classes. maybe using pandas is more efficient than various numpy arrays - remember to pickle with pandas?
 class Simulation:
 
+    #research range of values acceptable based on mean path length and contraints for a dilute gas
     def __init__(self):
-        self.N=50
-        self.dT=1
-        self.T=50
-        self.k=constants.k
-        self.m=32*constants.atomic_mass
+        self.N=50 #number of particles
+        self.dT=1 #time step
+        self.T=50 #temperature
+        self.k=constants.k #Boltzmann constant
+        self.m=32*constants.atomic_mass #mass of one molecular of oxygen
+        self.effectiveDiamter=2 #temp number, need to research effective diameter of oxygen
+        self.numberDensity=2 #temp number, need to research number density for oxygen
 
     def randomGeneration(self):
         rng=np.random.default_rng(seed=11)
         self.positions=rng.integers(low=0, high=100, size=(self.N, 3))
         self.velocities=maxwell.rvs(loc=10, size=(self.N, 3), random_state=11)
+
+    def meanPathLength(self):
+        return 1/(np.sqrt(2)*constants.pi*(self.effectiveDiamter**2)*self.numberDensity)
 
     #can improve beyond using basic Euler method
     def update(self):
@@ -37,6 +43,9 @@ class Simulation:
 
     def periodic_boundary(self):
         pass
+
+    def linearMomentum(self):
+        return self.m*np.linalg.norm(np.sum(self.velocities, axis=0))
 
 test=Simulation()
 test.randomGeneration()
