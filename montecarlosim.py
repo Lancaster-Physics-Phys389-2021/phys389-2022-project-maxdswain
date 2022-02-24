@@ -4,7 +4,7 @@ from scipy.stats import maxwell
 from scipy import constants
 
 #maybe split into simulation, walls and particles classes. maybe using pandas is more efficient than various numpy arrays - remember to pickle with pandas?
-#type of walls can be randomly generated, add negatives to self.velocities in randomGeneration, improve wall collision/running methods, maybe take into account particle radius when generating positions
+#add negatives to self.velocities in randomGeneration, improve wall collision/running methods, maybe take into account particle radius when generating positions
 class Simulation:
 
     #research range of values acceptable based on mean path length and contraints for a dilute gas
@@ -17,12 +17,12 @@ class Simulation:
         self.m=32*constants.atomic_mass #mass of one molecule of oxygen in kg
         self.effectiveDiamter=346 #effective diameter of oxygen in pm
         self.numberDensity=self.N/(self.length)**3
-        self.walls=[0, 0, 0, 0, 0, 0] #list of 6 walls 0 - periodic, 1 - specular, 2 - thermal; check folder for cube with labelled faces, list is in ascending order of index.
 
     def randomGeneration(self):
         rng=np.random.default_rng(seed=11)
         self.positions=rng.integers(low=0, high=self.length+1, size=(self.N, 3)) #randomly generated positions of N particles in pm
         self.velocities=maxwell.rvs(size=(self.N, 3), random_state=11) #velocities randomly generated using Maxwell distribution
+        self.walls=rng.integers(3, size=6) #list of 6 walls 0 - periodic, 1 - specular, 2 - thermal; check folder for cube with labelled faces, list is in ascending order of index.
 
     def meanPathLength(self):
         return 1/(np.sqrt(2)*constants.pi*(self.effectiveDiamter**2)*self.numberDensity)
@@ -34,20 +34,11 @@ class Simulation:
     #searches through positions finding any values out of the cube then runs wall collision methpds appropriate to the designated wall
     def wall_collision_detection(self):
         indicies1, indicies2=np.where(self.positions<=0), np.where(self.positions >= self.length)
+        #run=[[self.run_wall_collision(self.walls[j*2], [indicies1[0][i], indicies1[1][i]]) for i, j in enumerate(indicies1[1])]] #could maybe condense code into this with 1 in indices being changed
         for i, j in enumerate(indicies1[1]):
-            if j==0:
-                self.run_wall_collision(self.walls[0], [indicies1[0][i], indicies1[1][i]])
-            if j==1:
-                self.run_wall_collision(self.walls[2], [indicies1[0][i], indicies1[1][i]])
-            if j==2:
-                self.run_wall_collision(self.walls[4], [indicies1[0][i], indicies1[1][i]])
+            self.run_wall_collision(self.walls[j*2], [indicies1[0][i], indicies1[1][i]])
         for i, j in enumerate(indicies2[1]):
-            if j==0:
-                self.run_wall_collision(self.walls[1], [indicies2[0][i], indicies2[1][i]])
-            if j==1:
-                self.run_wall_collision(self.walls[3], [indicies2[0][i], indicies2[1][i]])
-            if j==2:
-                self.run_wall_collision(self.walls[5], [indicies2[0][i], indicies2[1][i]])
+            self.run_wall_collision(self.walls[j*2+1], [indicies2[0][i], indicies2[1][i]])
 
     def run_wall_collision(self, wall, indicies):
         if wall==0:
