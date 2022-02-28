@@ -53,15 +53,20 @@ class Simulation:
         deltaZ=25 #make method of finding divisble smaller than mean path length
         cells=int(self.length/deltaZ)
         cellVolume=deltaZ*self.length**2
-        n=0
         rng=np.random.default_rng(seed=11)
         for cell in [[deltaZ*i, (i+1)*deltaZ] for i in range(cells)]:
+            n=0
             particlesInCell=np.argwhere((self.positions>=cell[0]) & (self.positions<=cell[1]))
-            avgRvel=np.mean([]) #average difference in velocity (magnitude/speed) between all particles in the cell
-            numberOfCollisions=len(particlesInCell)**2*constants.pi*self.effectiveDiamter**2*avgRvel*self.Ne*self.dT/(2*cellVolume) #maybe need to round to integer
+            numberOfParticlesInCell=len(particlesInCell)
+            velDiff=[np.linalg.norm(self.velocities[array[0]][array[1]]-self.velocities[particle[0]][particle[1]]) for particle in particlesInCell for array in particlesInCell if (array == particle).all()==False]
+            if numberOfParticlesInCell>1: avgRvel=np.mean(velDiff) #average difference in speed between all particles in the cell
+            numberOfCollisions=np.rint(numberOfParticlesInCell**2*constants.pi*self.effectiveDiamter**2*avgRvel*self.Ne*self.dT/(2*cellVolume)).astype(int)
             while n<numberOfCollisions:
-                n+=1
-                randomParticles=[particlesInCell[rng.integers(len(particlesInCell))], particlesInCell[rng.integers(len(particlesInCell))]]
+                randomParticles=[particlesInCell[rng.integers(numberOfParticlesInCell)], particlesInCell[rng.integers(numberOfParticlesInCell)]] #need to prevent it from randomly selecting the same particle (chance of happening in cells with low number of particles)
+                condition=np.linalg.norm(self.velocities[randomParticles[0][0]][randomParticles[0][1]]-self.velocities[randomParticles[1][0]][randomParticles[1][1]])/(np.max(velDiff))
+                if condition>=rng.random(1):
+                    n+=1
+                    pass #processing of what happens to the two chosen particles
 
     def specular_surface(self, indicies):
         self.velocities[indicies[0]][indicies[1]]-=self.velocities[indicies[0]][indicies[1]]
@@ -86,4 +91,3 @@ class Simulation:
 test=Simulation()
 test.randomGeneration()
 test.particle_collision_detection()
-print(test.velocities[1])
