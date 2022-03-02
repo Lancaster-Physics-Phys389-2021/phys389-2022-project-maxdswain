@@ -4,7 +4,7 @@ from scipy.stats import maxwell
 from scipy import constants
 
 #maybe split into simulation, walls and particles classes, store data using pandas (pickle, check pdf) - ask about!, plot simulation, maybe animate it?, maybe take into account particle radius when generating positions
-#add negatives to self.velocities in randomGeneration, fix thermal wall, find out which is +/- in particle collisions
+#add negatives to self.velocities in randomGeneration, fix thermal wall, find out which is +/- in particle collisions, how to implement runge kutta method?
 class Simulation:
 
     #research range of values acceptable based on mean path length and contraints for a dilute gas
@@ -36,27 +36,19 @@ class Simulation:
     #searches through positions finding any values out of the cube then runs wall collision method appropriate to the designated wall
     def wall_collision_detection(self):
         indicies1, indicies2=np.where(self.positions<=0), np.where(self.positions >= self.length)
+        walls=[self.periodic_boundary, self.specular_surface, self.thermal_wall]
         for i, j in enumerate(indicies1[1]):
-            self.run_wall_collision(self.walls[j*2], [indicies1[0][i], indicies1[1][i]])
+            walls[self.walls[j*2]]([indicies1[0][i], indicies1[1][i]])
         for i, j in enumerate(indicies2[1]):
-            self.run_wall_collision(self.walls[j*2+1], [indicies2[0][i], indicies2[1][i]])
-
-    def run_wall_collision(self, wall, indicies):
-        if wall==0:
-            self.periodic_boundary(indicies)
-        if wall==1:
-            self.specular_surface(indicies)
-        if wall==2:
-            self.thermal_wall(indicies)
+            walls[self.walls[j*2+1]]([indicies2[0][i], indicies2[1][i]])
 
     def particle_collision_detection(self):
         deltaZ=np.max([num for num in range(1, self.length) if self.length%num==0 and num<self.meanPathLength()])
         cells=int(self.length/deltaZ)
         cellVolume=deltaZ*self.length**2
         for cell in [[deltaZ*i, (i+1)*deltaZ] for i in range(cells)]:
-            n=0
-            particlesInCell=np.argwhere((self.positions>=cell[0]) & (self.positions<=cell[1]))
-            numberOfParticlesInCell=len(particlesInCell)
+            particlesInCell=np.argwhere((self.positions>=cell[0]) & (self.positions<cell[1]))
+            numberOfParticlesInCell, n=len(particlesInCell), 0
             velDiff=[np.linalg.norm(self.velocities[array[0]][array[1]]-self.velocities[particle[0]][particle[1]]) for particle in particlesInCell for array in particlesInCell if (array == particle).all()==False]
             if numberOfParticlesInCell>1: avgRvel=np.mean(velDiff) #average difference in speed between all particles in the cell
             numberOfCollisions=np.rint(numberOfParticlesInCell**2*constants.pi*self.effectiveDiamter**2*avgRvel*self.Ne*self.dT/(2*cellVolume)).astype(int)
@@ -70,7 +62,6 @@ class Simulation:
                     cosTheta, sinTheta=q, np.sqrt(1-q**2)
                     velCM=0.5*np.array(self.velocities[randomParticles[0][0]]+self.velocities[randomParticles[1][0]])
                     velR=np.linalg.norm(self.velocities[randomParticles[0][0]]-self.velocities[randomParticles[1][0]])*np.array([sinTheta*np.cos(azimuthal), sinTheta*np.sin(azimuthal), cosTheta])
-                    #could simplify this further, which particle is +/-?
                     self.velocities[randomParticles[0][0]]=velCM+0.5*velR
                     self.velocities[randomParticles[1][0]]=velCM-0.5*velR
 
