@@ -2,9 +2,14 @@ import numpy as np
 import pandas as pd
 from scipy.stats import maxwell
 from scipy import constants
+from scipy import integrate
+import scipy
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from itertools import product, combinations
 
-#maybe split into simulation, walls and particles classes, store data using pandas (pickle, check pdf) - ask about!, plot simulation, maybe animate it?, maybe take into account particle radius when generating positions
-#fix thermal wall, how to implement runge kutta method?
+#maybe split into simulation, walls and particles classes, maybe take into account particle radius when generating positions, how to implement runge kutta method?
+#fix thermal wall, plot simulation, store data using pandas (pickle, check pdf) - ask about!, maybe animate it?
 class Simulation:
 
     #research range of values acceptable based on mean path length and contraints for a dilute gas
@@ -22,7 +27,7 @@ class Simulation:
 
     def randomGeneration(self):
         self.rng=np.random.default_rng(seed=11)
-        self.positions=self.rng.integers(low=0, high=self.length+1, size=(self.N, 3)) #randomly generated positions of N particles in pm
+        self.positions=self.rng.integers(low=0, high=self.length+1, size=(self.N, 3)).astype(float) #randomly generated positions of N particles in pm
         self.speeds=maxwell.rvs(scale=5, size=(self.N, 1), random_state=11) #velocities randomly generated using Maxwell distribution - adjust scale as appropriate to adjust speeds
         self.velocities=np.array([]).reshape(0, 3)
         for i in range(self.N):
@@ -55,8 +60,9 @@ class Simulation:
         for cell in [[deltaZ*i, (i+1)*deltaZ] for i in range(cells)]:
             particlesInCell=np.argwhere((self.positions>=cell[0]) & (self.positions<cell[1]))
             numberOfParticlesInCell, n=len(particlesInCell), 0
+            if numberOfParticlesInCell<2: continue
             velDiff=[np.linalg.norm(self.velocities[array[0]][array[1]]-self.velocities[particle[0]][particle[1]]) for particle in particlesInCell for array in particlesInCell if (array == particle).all()==False]
-            if numberOfParticlesInCell>1: avgRvel=np.mean(velDiff) #average difference in speed between all particles in the cell
+            avgRvel=np.mean(velDiff) #average difference in speed between all particles in the cell
             numberOfCollisions=np.rint(numberOfParticlesInCell**2*constants.pi*self.effectiveDiamter**2*avgRvel*self.Ne*self.dT/(2*cellVolume)).astype(int)
             while n<numberOfCollisions:
                 randomParticles=[particlesInCell[self.rng.integers(numberOfParticlesInCell)], particlesInCell[self.rng.integers(numberOfParticlesInCell)]] #need to prevent it from randomly selecting the same particle (chance of happening in cells with low number of particles)
@@ -82,7 +88,6 @@ class Simulation:
     def specular_surface(self, indicies):
         self.velocities[indicies[0]][indicies[1]]-=self.velocities[indicies[0]][indicies[1]]
 
-    #this is just the probability distribution so far, not calculating actual velocities yet - ask about in coding session Thursday
     def thermal_wall(self, indicies):
         self.velocities[indicies[0]][indicies[1]]*=self.m*np.exp(-self.m*self.velocities[indicies[0]][indicies[1]]**2/(2*self.k*self.T))/(self.k*self.T)
         for i in [x for x in range(3) if x!=indicies[1]]:
@@ -99,6 +104,22 @@ class Simulation:
     def angularMomentum(self):
         return np.sum(np.cross(self.positions, self.m*self.velocities), axis=0)
 
+    #make size appropriate to particle radius
+    def plot(self):
+        fig=plt.figure()
+        ax=fig.add_subplot(111, projection="3d")
+        for n in range(self.N):
+            ax.scatter(self.positions[n][0], self.positions[n][1], self.positions[n][2], c="black")
+        r=[0, self.length]
+        for s, e in combinations(np.array(list(product(r, r, r))), 2):
+            if np.sum(np.abs(s-e)) == r[1]-r[0]:
+                ax.plot3D(*zip(s, e), color="red")
+        ax.set_xlabel("x position")
+        ax.set_ylabel("y position")
+        ax.set_zlabel("z position")
+        plt.show()
+
 test=Simulation()
 test.randomGeneration()
 test.particle_collision_detection()
+test.plot()
