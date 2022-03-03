@@ -4,7 +4,7 @@ from scipy.stats import maxwell
 from scipy import constants
 
 #maybe split into simulation, walls and particles classes, store data using pandas (pickle, check pdf) - ask about!, plot simulation, maybe animate it?, maybe take into account particle radius when generating positions
-#add negatives to self.velocities in randomGeneration, fix thermal wall, find out which is +/- in particle collisions, how to implement runge kutta method?
+#fix thermal wall, how to implement runge kutta method?
 class Simulation:
 
     #research range of values acceptable based on mean path length and contraints for a dilute gas
@@ -23,7 +23,13 @@ class Simulation:
     def randomGeneration(self):
         self.rng=np.random.default_rng(seed=11)
         self.positions=self.rng.integers(low=0, high=self.length+1, size=(self.N, 3)) #randomly generated positions of N particles in pm
-        self.velocities=maxwell.rvs(size=(self.N, 3), random_state=11) #velocities randomly generated using Maxwell distribution
+        self.speeds=maxwell.rvs(scale=5, size=(self.N, 1), random_state=11) #velocities randomly generated using Maxwell distribution - adjust scale as appropriate to adjust speeds
+        self.velocities=np.array([]).reshape(0, 3)
+        for i in range(self.N):
+            azimuthal=2*constants.pi*self.rng.random(None)
+            q=2*self.rng.random(None)-1
+            cosTheta, sinTheta=q, np.sqrt(1-q**2)
+            self.velocities=np.vstack((self.velocities, self.speeds[i][0]*np.array([sinTheta*np.cos(azimuthal), sinTheta*np.sin(azimuthal), cosTheta])))
         self.walls=self.rng.integers(3, size=6) #list of 6 walls 0 - periodic, 1 - specular, 2 - thermal; check folder for cube with labelled faces, list is in ascending order of index.
 
     def meanPathLength(self):
