@@ -5,9 +5,10 @@ from scipy import constants
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from itertools import product, combinations
+from copy import deepcopy
 
 #maybe split into simulation, walls and particles classes, maybe take into account particle radius when generating positions, how to implement runge kutta method?
-#fix thermal wall - implement better distributions in general for velocities, fix storing of data, find better value for "stuck" implement angle generation as a function
+#fix thermal wall - implement better distributions in general for velocities, find better value for "stuck" implement angle generation as a function
 class Simulation:
 
     #research range of values acceptable based on mean path length and contraints for a dilute gas
@@ -81,13 +82,13 @@ class Simulation:
     #what order should I run different parts of my code in?
     def run(self):
         self.randomGeneration()
-        tempPos, tempVel=[self.positions], [self.velocities]
+        tempPos, tempVel=[deepcopy(self.positions)], [deepcopy(self.velocities)]
         for x in range(self.timeIntervals):
             self.update()
             self.wall_collision_detection()
             self.particle_collision_detection()
-            tempPos.append(self.positions)
-            tempVel.append(self.velocities)
+            tempPos.append(deepcopy(self.positions))
+            tempVel.append(deepcopy(self.velocities))
         self.time=[i*self.dT for i in range(self.timeIntervals+1)]
         df=pd.DataFrame(data={"Time": self.time, "Position": tempPos, "Velocity": tempVel})
         df.to_pickle("Simulation_Data.csv")
