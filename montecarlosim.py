@@ -7,7 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from itertools import product, combinations
 
 #maybe split into simulation, walls and particles classes, maybe take into account particle radius when generating positions, how to implement runge kutta method?
-#fix thermal wall - implement better distributions in general for velocities, animation with vectors for velocities
+#fix thermal wall - implement better distributions in general for velocities, fix storing of data, find better value for "stuck" implement angle generation as a function
 class Simulation:
 
     #research range of values acceptable based on mean path length and contraints for a dilute gas
