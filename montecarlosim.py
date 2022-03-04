@@ -9,7 +9,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from itertools import product, combinations
 
 #maybe split into simulation, walls and particles classes, maybe take into account particle radius when generating positions, how to implement runge kutta method?
-#fix thermal wall, plot simulation, store data using pandas (pickle, check pdf) - ask about!, maybe animate it?
+#fix thermal wall, store data using pandas (pickle, check pdf), animation with vectors for velocities
 class Simulation:
 
     #research range of values acceptable based on mean path length and contraints for a dilute gas
@@ -31,6 +31,7 @@ class Simulation:
         self.speeds=maxwell.rvs(scale=5, size=(self.N, 1), random_state=11) #velocities randomly generated using Maxwell distribution - adjust scale as appropriate to adjust speeds
         self.velocities=np.array([]).reshape(0, 3)
         for i in range(self.N):
+            #implement this as a function - contains repeated code in particle collision detection
             azimuthal=2*constants.pi*self.rng.random(None)
             q=2*self.rng.random(None)-1
             cosTheta, sinTheta=q, np.sqrt(1-q**2)
