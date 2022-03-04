@@ -8,7 +8,7 @@ from itertools import product, combinations
 from copy import deepcopy
 
 #maybe split into simulation, walls and particles classes, maybe take into account particle radius when generating positions, how to implement runge kutta method?
-#fix thermal wall - implement better distributions in general for velocities, find better value for "stuck" implement angle generation as a function
+#fix thermal wall - implement better distributions in general for velocities
 class Simulation:
 
     #research range of values acceptable based on mean path length and contraints for a dilute gas
@@ -16,25 +16,28 @@ class Simulation:
         self.N=50 #number of particles - this can represent Ne effective particles in a physical system, currently because N is small in testing Ne=N but when simulating a gas with large Ne, N would be a fraction of Ne - write about the fraction in the report
         self.Ne=1*self.N #number of effective particles
         self.dT=0.1 #time step
-        self.timeIntervals=5000
+        self.timeIntervals=50
         self.T=50 #temperature in Kelvin
         self.length=1000 #length of the sides of the box in pm
         self.k=constants.k #Boltzmann constant
         self.m=32*constants.atomic_mass #mass of one molecule of oxygen in kg
         self.effectiveDiamter=346 #effective diameter of oxygen in pm
         self.numberDensity=self.N/(self.length)**3
+        self.rng=np.random.default_rng(seed=11)
+        deltaZ=np.max([num for num in range(1, self.length) if self.length%num==0 and num<self.meanPathLength()])
+        self.cells=[[deltaZ*i, (i+1)*deltaZ] for i in range(int(self.length/deltaZ))]
+        self.cellVolume=deltaZ*self.length**2
+
+    def uniformAngleGeneration(self):
+        azimuthal=2*constants.pi*self.rng.random(None)
+        q=2*self.rng.random(None)-1
+        cosTheta, sinTheta=q, np.sqrt(1-q**2)
+        return np.array([sinTheta*np.cos(azimuthal), sinTheta*np.sin(azimuthal), cosTheta])
 
     def randomGeneration(self):
-        self.rng=np.random.default_rng(seed=11)
         self.positions=self.rng.integers(low=0, high=self.length+1, size=(self.N, 3)).astype(float) #randomly generated positions of N particles in pm
         self.speeds=maxwell.rvs(scale=5, size=(self.N, 1), random_state=11) #velocities randomly generated using Maxwell distribution - adjust scale as appropriate to adjust speeds
-        self.velocities=np.array([]).reshape(0, 3)
-        for i in range(self.N):
-            #implement this as a function - contains repeated code in particle collision detection
-            azimuthal=2*constants.pi*self.rng.random(None)
-            q=2*self.rng.random(None)-1
-            cosTheta, sinTheta=q, np.sqrt(1-q**2)
-            self.velocities=np.vstack((self.velocities, self.speeds[i][0]*np.array([sinTheta*np.cos(azimuthal), sinTheta*np.sin(azimuthal), cosTheta])))
+        self.velocities=np.array([self.speeds[i][0]*self.uniformAngleGeneration() for i in range(self.N)]).reshape(self.N, 3)
         self.walls=self.rng.integers(2, size=6) #list of 6 walls 0 - periodic, 1 - specular, 2 - thermal; check folder for cube with labelled faces, list is in ascending order of index.
 
     def meanPathLength(self):
@@ -54,28 +57,22 @@ class Simulation:
             walls[self.walls[j*2+1]]([indicies2[0][i], indicies2[1][i]])
 
     def particle_collision_detection(self):
-        deltaZ=np.max([num for num in range(1, self.length) if self.length%num==0 and num<self.meanPathLength()])
-        cells=int(self.length/deltaZ)
-        cellVolume=deltaZ*self.length**2
-        for cell in [[deltaZ*i, (i+1)*deltaZ] for i in range(cells)]:
+        for cell in self.cells:
             particlesInCell=np.argwhere((self.positions>=cell[0]) & (self.positions<cell[1]))
             numberOfParticlesInCell, n, stuck=len(particlesInCell), 0, 0
             if numberOfParticlesInCell<2: continue
             velDiff=[np.linalg.norm(self.velocities[array[0]][array[1]]-self.velocities[particle[0]][particle[1]]) for particle in particlesInCell for array in particlesInCell if (array == particle).all()==False]
             avgRvel=np.mean(velDiff) #average difference in speed between all particles in the cell
-            numberOfCollisions=np.rint(numberOfParticlesInCell**2*constants.pi*self.effectiveDiamter**2*avgRvel*self.Ne*self.dT/(2*cellVolume)).astype(int)
+            numberOfCollisions=np.rint(numberOfParticlesInCell**2*constants.pi*self.effectiveDiamter**2*avgRvel*self.Ne*self.dT/(2*self.cellVolume)).astype(int)
             while n<numberOfCollisions:
                 stuck+=1
-                if stuck>100: break
+                if stuck>75: break
                 randomParticles=[particlesInCell[self.rng.integers(numberOfParticlesInCell)], particlesInCell[self.rng.integers(numberOfParticlesInCell)]] #need to prevent it from randomly selecting the same particle (chance of happening in cells with low number of particles)
                 condition=np.linalg.norm(self.velocities[randomParticles[0][0]]-self.velocities[randomParticles[1][0]])/(np.max(velDiff))
                 if condition>self.rng.random(1):
                     n+=1
-                    azimuthal=2*constants.pi*self.rng.random(None)
-                    q=2*self.rng.random(None)-1
-                    cosTheta, sinTheta=q, np.sqrt(1-q**2)
                     velCM=0.5*np.array(self.velocities[randomParticles[0][0]]+self.velocities[randomParticles[1][0]])
-                    velR=np.linalg.norm(self.velocities[randomParticles[0][0]]-self.velocities[randomParticles[1][0]])*np.array([sinTheta*np.cos(azimuthal), sinTheta*np.sin(azimuthal), cosTheta])
+                    velR=np.linalg.norm(self.velocities[randomParticles[0][0]]-self.velocities[randomParticles[1][0]])*self.uniformAngleGeneration()
                     self.velocities[randomParticles[0][0]]=velCM+0.5*velR
                     self.velocities[randomParticles[1][0]]=velCM-0.5*velR
 
