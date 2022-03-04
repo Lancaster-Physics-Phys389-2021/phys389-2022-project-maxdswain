@@ -7,7 +7,7 @@ from itertools import product, combinations
 
 df=pd.read_pickle("Simulation_Data.csv")
 
-iterations=df.shape[0]
+iterations=int(df.shape[0]/10)
 fig=plt.figure()
 ax=p3.Axes3D(fig)
 scatters=[ax.scatter(df["Position"][0][i][0], df["Position"][0][i][1], df["Position"][0][i][2], c="black") for i in range(df["Position"][0].shape[0])]
@@ -22,11 +22,11 @@ ax.view_init(25, 10)
 
 def animate(iteration, df, scatters):
     for i in range(df["Position"][0].shape[0]):
-        scatters[i]._offsets3d=(df["Position"][iteration][i, 0:1], df["Position"][iteration][i, 1:2], df["Position"][iteration][i, 2:])
+        scatters[i]._offsets3d=(df["Position"][iteration*10][i, 0:1], df["Position"][iteration*10][i, 1:2], df["Position"][iteration*10][i, 2:])
     return scatters
 
 ani=animation.FuncAnimation(fig, animate, iterations, fargs=(df, scatters), interval=50, blit=False, repeat=True)
 #writer=animation.FFMpegWriter(fps=60)
-writer=animation.PillowWriter(fps=30) 
+writer=animation.PillowWriter(fps=60) 
 ani.save("animation.gif", writer=writer)
 plt.show()
