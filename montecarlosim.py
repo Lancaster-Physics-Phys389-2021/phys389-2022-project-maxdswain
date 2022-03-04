@@ -2,21 +2,19 @@ import numpy as np
 import pandas as pd
 from scipy.stats import maxwell
 from scipy import constants
-from scipy import integrate
-import scipy
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from itertools import product, combinations
 
 #maybe split into simulation, walls and particles classes, maybe take into account particle radius when generating positions, how to implement runge kutta method?
-#fix thermal wall, store data using pandas (pickle, check pdf), animation with vectors for velocities
+#fix thermal wall - implement better distributions in general for velocities, animation with vectors for velocities
 class Simulation:
 
     #research range of values acceptable based on mean path length and contraints for a dilute gas
     def __init__(self):
         self.N=50 #number of particles - this can represent Ne effective particles in a physical system, currently because N is small in testing Ne=N but when simulating a gas with large Ne, N would be a fraction of Ne - write about the fraction in the report
         self.Ne=1*self.N #number of effective particles
-        self.dT=1 #time step
+        self.dT=0.1 #time step
         self.timeIntervals=5000
         self.T=50 #temperature in Kelvin
         self.length=1000 #length of the sides of the box in pm
@@ -36,7 +34,7 @@ class Simulation:
             q=2*self.rng.random(None)-1
             cosTheta, sinTheta=q, np.sqrt(1-q**2)
             self.velocities=np.vstack((self.velocities, self.speeds[i][0]*np.array([sinTheta*np.cos(azimuthal), sinTheta*np.sin(azimuthal), cosTheta])))
-        self.walls=self.rng.integers(3, size=6) #list of 6 walls 0 - periodic, 1 - specular, 2 - thermal; check folder for cube with labelled faces, list is in ascending order of index.
+        self.walls=self.rng.integers(2, size=6) #list of 6 walls 0 - periodic, 1 - specular, 2 - thermal; check folder for cube with labelled faces, list is in ascending order of index.
 
     def meanPathLength(self):
         return 1/(np.sqrt(2)*constants.pi*(self.effectiveDiamter**2)*self.numberDensity)
@@ -60,12 +58,14 @@ class Simulation:
         cellVolume=deltaZ*self.length**2
         for cell in [[deltaZ*i, (i+1)*deltaZ] for i in range(cells)]:
             particlesInCell=np.argwhere((self.positions>=cell[0]) & (self.positions<cell[1]))
-            numberOfParticlesInCell, n=len(particlesInCell), 0
+            numberOfParticlesInCell, n, stuck=len(particlesInCell), 0, 0
             if numberOfParticlesInCell<2: continue
             velDiff=[np.linalg.norm(self.velocities[array[0]][array[1]]-self.velocities[particle[0]][particle[1]]) for particle in particlesInCell for array in particlesInCell if (array == particle).all()==False]
             avgRvel=np.mean(velDiff) #average difference in speed between all particles in the cell
             numberOfCollisions=np.rint(numberOfParticlesInCell**2*constants.pi*self.effectiveDiamter**2*avgRvel*self.Ne*self.dT/(2*cellVolume)).astype(int)
             while n<numberOfCollisions:
+                stuck+=1
+                if stuck>100: break
                 randomParticles=[particlesInCell[self.rng.integers(numberOfParticlesInCell)], particlesInCell[self.rng.integers(numberOfParticlesInCell)]] #need to prevent it from randomly selecting the same particle (chance of happening in cells with low number of particles)
                 condition=np.linalg.norm(self.velocities[randomParticles[0][0]]-self.velocities[randomParticles[1][0]])/(np.max(velDiff))
                 if condition>self.rng.random(1):
@@ -81,13 +81,19 @@ class Simulation:
     #what order should I run different parts of my code in?
     def run(self):
         self.randomGeneration()
-        for x in range(1, self.timeIntervals+1):
-            self.particle_collision_detection()
-            self.wall_collision_detection()
+        tempPos, tempVel=[self.positions], [self.velocities]
+        for x in range(self.timeIntervals):
             self.update()
+            self.wall_collision_detection()
+            self.particle_collision_detection()
+            tempPos.append(self.positions)
+            tempVel.append(self.velocities)
+        self.time=[i*self.dT for i in range(self.timeIntervals+1)]
+        df=pd.DataFrame(data={"Time": self.time, "Position": tempPos, "Velocity": tempVel})
+        df.to_pickle("Simulation_Data.csv")
 
     def specular_surface(self, indicies):
-        self.velocities[indicies[0]][indicies[1]]-=self.velocities[indicies[0]][indicies[1]]
+        self.velocities[indicies[0]][indicies[1]]=-self.velocities[indicies[0]][indicies[1]]
 
     def thermal_wall(self, indicies):
         self.velocities[indicies[0]][indicies[1]]*=self.m*np.exp(-self.m*self.velocities[indicies[0]][indicies[1]]**2/(2*self.k*self.T))/(self.k*self.T)
@@ -95,9 +101,9 @@ class Simulation:
             self.velocities[indicies[0]][i]=np.sqrt(self.m/(2*constants.pi*self.k*self.T))*np.exp(-self.m*self.velocities[indicies[0]][i]**2/(2*self.k*self.T))
 
     def periodic_boundary(self, indicies):
-        if self.velocities[indicies[0]][indicies[1]]<0: self.velocities[indicies[0]][indicies[1]]+=self.length
+        if self.velocities[indicies[0]][indicies[1]]<0: self.positions[indicies[0]][indicies[1]]+=self.length
         else:
-            self.velocities[indicies[0]][indicies[1]]-=self.length
+            self.positions[indicies[0]][indicies[1]]-=self.length
 
     def linearMomentum(self):
         return self.m*np.sum(self.velocities, axis=0)
@@ -121,6 +127,5 @@ class Simulation:
         plt.show()
 
 test=Simulation()
-test.randomGeneration()
-test.particle_collision_detection()
+test.run()
 test.plot()
