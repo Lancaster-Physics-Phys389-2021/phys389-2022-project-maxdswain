@@ -7,8 +7,8 @@ from mpl_toolkits.mplot3d import Axes3D
 from itertools import product, combinations
 from copy import deepcopy
 
-#maybe split into simulation, walls and particles classes, maybe take into account particle radius when generating positions, how to implement runge kutta method?
-#fix thermal wall - implement better distributions in general for velocities
+#maybe take into account particle radius when generating positions, how to implement runge kutta method?
+#fix wall collision detection
 class Simulation:
 
     #research range of values acceptable based on mean path length and contraints for a dilute gas
@@ -16,7 +16,7 @@ class Simulation:
         self.N=50 #number of particles - this can represent Ne effective particles in a physical system, currently because N is small in testing Ne=N but when simulating a gas with large Ne, N would be a fraction of Ne - write about the fraction in the report
         self.Ne=1*self.N #number of effective particles
         self.dT=0.1 #time step
-        self.timeIntervals=50
+        self.timeIntervals=500
         self.T=50 #temperature in Kelvin
         self.length=1000 #length of the sides of the box in pm
         self.k=constants.k #Boltzmann constant
@@ -38,7 +38,7 @@ class Simulation:
         self.positions=self.rng.integers(low=0, high=self.length+1, size=(self.N, 3)).astype(float) #randomly generated positions of N particles in pm
         self.speeds=maxwell.rvs(scale=5, size=(self.N, 1), random_state=11) #velocities randomly generated using Maxwell distribution - adjust scale as appropriate to adjust speeds
         self.velocities=np.array([self.speeds[i][0]*self.uniformAngleGeneration() for i in range(self.N)]).reshape(self.N, 3)
-        self.walls=self.rng.integers(2, size=6) #list of 6 walls 0 - periodic, 1 - specular, 2 - thermal; check folder for cube with labelled faces, list is in ascending order of index.
+        self.walls=self.rng.integers(3, size=6) #list of 6 walls 0 - periodic, 1 - specular, 2 - thermal; check folder for cube with labelled faces, list is in ascending order of index.
 
     def meanPathLength(self):
         return 1/(np.sqrt(2)*constants.pi*(self.effectiveDiamter**2)*self.numberDensity)
@@ -94,9 +94,9 @@ class Simulation:
         self.velocities[indicies[0]][indicies[1]]=-self.velocities[indicies[0]][indicies[1]]
 
     def thermal_wall(self, indicies):
-        self.velocities[indicies[0]][indicies[1]]*=self.m*np.exp(-self.m*self.velocities[indicies[0]][indicies[1]]**2/(2*self.k*self.T))/(self.k*self.T)
+        self.velocities[indicies[0]][indicies[1]]=np.sqrt(self.T)*self.rng.normal(0, 1)
         for i in [x for x in range(3) if x!=indicies[1]]:
-            self.velocities[indicies[0]][i]=np.sqrt(self.m/(2*constants.pi*self.k*self.T))*np.exp(-self.m*self.velocities[indicies[0]][i]**2/(2*self.k*self.T))
+            self.velocities[indicies[0]][i]=np.sqrt(-2*self.T*np.log(self.rng.random(None)))
 
     def periodic_boundary(self, indicies):
         if self.velocities[indicies[0]][indicies[1]]<0: self.positions[indicies[0]][indicies[1]]+=self.length
