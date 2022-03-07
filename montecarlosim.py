@@ -7,7 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from itertools import product, combinations
 from copy import deepcopy
 
-#mean vx, vy, vyz, mean kinetic energy vs time. 2D plots xy, yz etc, test initialisation of histogram, vx, vy, vz vs maxwell - animate these, how to implement runge kutta method?
+#mean vx, vy, vyz, mean kinetic energy vs time. 2D plots xy, yz etc, test initialisation of histogram, vx, vy, vz vs maxwell - animate these, units test with pytest, how to implement runge kutta method?
 class Simulation:
 
     #research range of values acceptable based on mean path length and contraints for a dilute gas
@@ -108,7 +108,6 @@ class Simulation:
     def angularMomentum(self):
         return np.sum(np.cross(self.positions, self.m*self.velocities), axis=0)
 
-    #make size appropriate to particle radius
     def plot(self):
         fig=plt.figure()
         ax=fig.add_subplot(111, projection="3d")
