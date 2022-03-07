@@ -7,8 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from itertools import product, combinations
 from copy import deepcopy
 
-#maybe take into account particle radius when generating positions, how to implement runge kutta method?
-#fix wall collision detection
+#mean vx, vy, vyz, mean kinetic energy vs time. 2D plots xy, yz etc, test initialisation of histogram, vx, vy, vz vs maxwell - animate these, how to implement runge kutta method?
 class Simulation:
 
     #research range of values acceptable based on mean path length and contraints for a dilute gas
@@ -38,7 +37,7 @@ class Simulation:
         self.positions=self.rng.integers(low=0, high=self.length+1, size=(self.N, 3)).astype(float) #randomly generated positions of N particles in pm
         self.speeds=maxwell.rvs(scale=5, size=(self.N, 1), random_state=11) #velocities randomly generated using Maxwell distribution - adjust scale as appropriate to adjust speeds
         self.velocities=np.array([self.speeds[i][0]*self.uniformAngleGeneration() for i in range(self.N)]).reshape(self.N, 3)
-        self.walls=self.rng.integers(3, size=6) #list of 6 walls 0 - periodic, 1 - specular, 2 - thermal; check folder for cube with labelled faces, list is in ascending order of index.
+        self.walls=[0, 2, 0, 1, 0, 1] #list of 6 walls 0 - periodic, 1 - specular, 2 - thermal; check folder for cube with labelled faces, list is in ascending order of index.
 
     def meanPathLength(self):
         return 1/(np.sqrt(2)*constants.pi*(self.effectiveDiamter**2)*self.numberDensity)
@@ -94,7 +93,7 @@ class Simulation:
         self.velocities[indicies[0]][indicies[1]]=-self.velocities[indicies[0]][indicies[1]]
 
     def thermal_wall(self, indicies):
-        self.velocities[indicies[0]][indicies[1]]=np.sqrt(self.T)*self.rng.normal(0, 1)
+        self.velocities[indicies[0]][indicies[1]]=-np.sign(self.velocities[indicies[0]][indicies[1]])*abs(np.sqrt(self.T)*self.rng.normal(0, 1))
         for i in [x for x in range(3) if x!=indicies[1]]:
             self.velocities[indicies[0]][i]=np.sqrt(-2*self.T*np.log(self.rng.random(None)))
 
