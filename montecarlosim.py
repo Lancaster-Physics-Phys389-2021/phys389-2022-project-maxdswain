@@ -10,7 +10,7 @@ from copy import deepcopy
 #mean vx, vy, vyz, mean kinetic energy vs time. 2D plots xy, yz etc, test initialisation of histogram, vx, vy, vz vs maxwell - animate these, units test with pytest, how to implement runge kutta method?
 class Simulation:
 
-    #research range of values acceptable based on mean path length and contraints for a dilute gas
+    #research range of values acceptable based on mean path length and constraints for a dilute gas
     def __init__(self):
         self.N=50 #number of particles - this can represent Ne effective particles in a physical system, currently because N is small in testing Ne=N but when simulating a gas with large Ne, N would be a fraction of Ne - write about the fraction in the report
         self.Ne=1*self.N #number of effective particles
@@ -48,12 +48,12 @@ class Simulation:
 
     #searches through positions finding any values out of the cube then runs wall collision method appropriate to the designated wall
     def wall_collision_detection(self):
-        indicies1, indicies2=np.where(self.positions<=0), np.where(self.positions >= self.length)
+        indices1, indices2=np.where(self.positions<=0), np.where(self.positions >= self.length)
         walls=[self.periodic_boundary, self.specular_surface, self.thermal_wall]
-        for i, j in enumerate(indicies1[1]):
-            walls[self.walls[j*2]]([indicies1[0][i], indicies1[1][i]])
-        for i, j in enumerate(indicies2[1]):
-            walls[self.walls[j*2+1]]([indicies2[0][i], indicies2[1][i]])
+        for i, j in enumerate(indices1[1]):
+            walls[self.walls[j*2]]([indices1[0][i], indices1[1][i]])
+        for i, j in enumerate(indices2[1]):
+            walls[self.walls[j*2+1]]([indices2[0][i], indices2[1][i]])
 
     def particle_collision_detection(self):
         for cell in self.cells:
@@ -89,18 +89,18 @@ class Simulation:
         df=pd.DataFrame(data={"Time": self.time, "Position": tempPos, "Velocity": tempVel})
         df.to_pickle("Simulation_Data.csv")
 
-    def specular_surface(self, indicies):
-        self.velocities[indicies[0]][indicies[1]]=-self.velocities[indicies[0]][indicies[1]]
+    def specular_surface(self, indices):
+        self.velocities[indices[0]][indices[1]]=-self.velocities[indices[0]][indices[1]]
 
-    def thermal_wall(self, indicies):
-        self.velocities[indicies[0]][indicies[1]]=-np.sign(self.velocities[indicies[0]][indicies[1]])*abs(np.sqrt(self.T)*self.rng.normal(0, 1))
-        for i in [x for x in range(3) if x!=indicies[1]]:
-            self.velocities[indicies[0]][i]=np.sqrt(-2*self.T*np.log(self.rng.random(None)))
+    def thermal_wall(self, indices):
+        self.velocities[indices[0]][indices[1]]=-np.sign(self.velocities[indices[0]][indices[1]])*abs(np.sqrt(self.T)*self.rng.normal(0, 1))
+        for i in [x for x in range(3) if x!=indices[1]]:
+            self.velocities[indices[0]][i]=np.sqrt(-2*self.T*np.log(self.rng.random(None)))
 
-    def periodic_boundary(self, indicies):
-        if self.velocities[indicies[0]][indicies[1]]<0: self.positions[indicies[0]][indicies[1]]+=self.length
+    def periodic_boundary(self, indices):
+        if self.velocities[indices[0]][indices[1]]<0: self.positions[indices[0]][indices[1]]+=self.length
         else:
-            self.positions[indicies[0]][indicies[1]]-=self.length
+            self.positions[indices[0]][indices[1]]-=self.length
 
     def linearMomentum(self):
         return self.m*np.sum(self.velocities, axis=0)
@@ -121,7 +121,3 @@ class Simulation:
         ax.set_ylabel("y position")
         ax.set_zlabel("z position")
         plt.show()
-
-test=Simulation()
-test.run()
-test.plot()
