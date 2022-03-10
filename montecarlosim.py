@@ -7,7 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from itertools import product, combinations
 from copy import deepcopy
 
-#mean vx, vy, vyz, mean kinetic energy vs time. 2D plots xy, yz etc, test initialisation of histogram, vx, vy, vz vs maxwell - animate these, units test with pytest, how to implement runge kutta method?
+#mean vx, vy, vyz, mean kinetic energy vs time. 2D plots xy, yz etc, test initialisation of histogram vx, vy, vz vs maxwell plots - animate these
 class Simulation:
 
     #research range of values acceptable based on mean path length and constraints for a dilute gas
@@ -42,7 +42,6 @@ class Simulation:
     def meanPathLength(self):
         return 1/(np.sqrt(2)*constants.pi*(self.effectiveDiamter**2)*self.numberDensity)
 
-    #can improve beyond basic Euler method using the Runge Kutta method
     def update(self):
         self.positions+=np.dot(self.velocities, self.dT)
 
@@ -75,7 +74,6 @@ class Simulation:
                     self.velocities[randomParticles[0][0]]=velCM+0.5*velR
                     self.velocities[randomParticles[1][0]]=velCM-0.5*velR
 
-    #what order should I run different parts of my code in?
     def run(self):
         self.randomGeneration()
         tempPos, tempVel=[deepcopy(self.positions)], [deepcopy(self.velocities)]
