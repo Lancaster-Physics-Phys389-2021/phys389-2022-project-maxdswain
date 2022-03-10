@@ -1,8 +1,9 @@
 import pytest
 import numpy as np
+import pandas as pd
 from montecarlosim import Simulation
 
-#Group testing into classes
+#Group testing into classes, add notes to why each test fails
 testSimulation=Simulation()
 
 def test_randomGeneration():
@@ -26,8 +27,13 @@ def test_eulerMethod():
     testSimulation.update()
     assert (testSimulation.positions==np.array([[8, 10, 12], [9, 5, 10], [10, 12, 7]])).all()
 
+#can make more comprehensive
 def test_wallCollisionDetection():
-    pass
+    testSimulation.length=15
+    testSimulation.positions=np.array([[4, 17, 0], [3, 3, 4], [0, 2, 6]])
+    testSimulation.velocities=np.array([[2, 4, 6], [3, 1, 3], [5, 5, 1]])
+    testSimulation.wall_collision_detection()
+    assert (testSimulation.velocities==np.array([[2, -4, 6], [3, 1, 3], [5, 5, 1]])).all()
 
 def test_periodicWall():
     testSimulation.positions=np.array([[4, 2, 0], [3, 3, 4], [0, 2, 6]])
@@ -37,7 +43,6 @@ def test_periodicWall():
 
 def test_specularSurface():
     testSimulation.velocities=np.array([[2, 4, 6], [3, 1, 3], [5, 5, 1]])
-    testSimulation.length=5
     testSimulation.specular_surface([2, 2])
     assert (testSimulation.velocities==np.array([[2, 4, 6], [3, 1, 3], [5, 5, -1]])).all()
 
@@ -63,6 +68,12 @@ def test_angularMomentum():
     testSimulation.positions=np.array([[3, 1, 3]])
     assert (testSimulation.angularMomentum()==np.array([-60, -120, 100])).all()
 
-#Test if particles have left the box, test if energy is conserved to an appropriate degree
+#Test if particles have left the box, test if energy is conserved to an appropriate degree 
+#random wall assignment with no thermal walls as KE is not conserved then is [1, 0, 1, 1, 0, 1], ran with length 1000 over 500 iterations
 def test_run():
-    pass
+    df=pd.read_pickle("Simulation_Data.csv")
+    testSimulation.m=5.31372501312e-26
+    assert len(np.argwhere((df["Position"][500]>=1000) & (df["Position"][500]<0)))==0
+    meanKineticEnergyBefore=0.5*testSimulation.m*np.mean(np.linalg.norm(df["Velocity"][0], axis=0))**2
+    meanKineticEnergyAfter=0.5*testSimulation.m*np.mean(np.linalg.norm(df["Velocity"][500], axis=0))**2
+    assert meanKineticEnergyBefore - meanKineticEnergyAfter < 3*10**(-25)
