@@ -26,6 +26,7 @@ class Simulation:
         deltaZ=np.max([num for num in range(1, self.length) if self.length%num==0 and num<self.meanPathLength()])
         self.cells=[[deltaZ*i, (i+1)*deltaZ] for i in range(int(self.length/deltaZ))]
         self.cellVolume=deltaZ*self.length**2
+        self.walls=[0, 2, 0, 1, 0, 1] #list of 6 walls 0 - periodic, 1 - specular, 2 - thermal; check folder for cube with labelled faces, list is in ascending order of index.
 
     def uniformAngleGeneration(self):
         azimuthal=2*constants.pi*self.rng.random(None)
@@ -37,7 +38,6 @@ class Simulation:
         self.positions=self.rng.integers(low=0, high=self.length+1, size=(self.N, 3)).astype(float) #randomly generated positions of N particles in pm
         self.speeds=maxwell.rvs(scale=5, size=(self.N, 1), random_state=11) #velocities randomly generated using Maxwell distribution - adjust scale as appropriate to adjust speeds
         self.velocities=np.array([self.speeds[i][0]*self.uniformAngleGeneration() for i in range(self.N)]).reshape(self.N, 3)
-        self.walls=[0, 2, 0, 1, 0, 1] #list of 6 walls 0 - periodic, 1 - specular, 2 - thermal; check folder for cube with labelled faces, list is in ascending order of index.
 
     def meanPathLength(self):
         return 1/(np.sqrt(2)*constants.pi*(self.effectiveDiamter**2)*self.numberDensity)
@@ -105,6 +105,9 @@ class Simulation:
 
     def angularMomentum(self):
         return np.sum(np.cross(self.positions, self.m*self.velocities), axis=0)
+
+    def meanKineticEnergy(self):
+        return 0.5*self.m*np.mean(np.linalg.norm(self.velocities, axis=0))**2
 
     def plot(self):
         fig=plt.figure()
