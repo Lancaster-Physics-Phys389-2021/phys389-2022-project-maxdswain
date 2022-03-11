@@ -8,7 +8,7 @@ from itertools import product, combinations
 from copy import deepcopy
 import json
 
-#implement json configuration file, mean vx, vy, vyz, mean kinetic energy vs time. 2D plots xy, yz etc, test initialisation of histogram vx, vy, vz vs maxwell plots - animate these + detailed quality comments
+#mean vx, vy, vyz, mean kinetic energy vs time; 2D plots xy, yz etc; test initialisation of histogram vx, vy, vz vs maxwell plots - animate these + detailed quality comments
 class Simulation:
 
     #research range of values acceptable based on mean path length and constraints for a dilute gas
@@ -59,19 +59,16 @@ class Simulation:
 
     def particle_collision_detection(self):
         for cell in self.cells:
-            particlesInCell=np.argwhere((self.positions>=cell[0]) & (self.positions<cell[1]))
-            numberOfParticlesInCell, n, stuck=len(particlesInCell), 0, 0
+            posZ=[self.positions[i][2] for i in range(self.N)] #taking only z components as cells are divided in z axis
+            particlesInCell=np.argwhere((posZ>=cell[0]) & (posZ<cell[1]))
+            numberOfParticlesInCell=len(particlesInCell)
             if numberOfParticlesInCell<2: continue
-            velDiff=[np.linalg.norm(self.velocities[array[0]][array[1]]-self.velocities[particle[0]][particle[1]]) for particle in particlesInCell for array in particlesInCell if (array == particle).all()==False]
-            avgRvel=np.mean(velDiff) #average difference in speed between all particles in the cell
-            numberOfCollisions=np.rint(numberOfParticlesInCell**2*constants.pi*self.effectiveDiamter**2*avgRvel*self.Ne*self.dT/(2*self.cellVolume)).astype(int)
-            while n<numberOfCollisions:
-                stuck+=1
-                if stuck>75: break
+            velMax=25 #chosen by calculating the velocity difference between particles then looking at the maxes of that over numerous iterations - is an overestimate
+            numberOfCollisions=np.rint(numberOfParticlesInCell**2*constants.pi*self.effectiveDiamter**2*velMax*self.Ne*self.dT/(2*self.cellVolume)).astype(int)
+            for x in range(numberOfCollisions):
                 randomParticles=[particlesInCell[self.rng.integers(numberOfParticlesInCell)], particlesInCell[self.rng.integers(numberOfParticlesInCell)]] #need to prevent it from randomly selecting the same particle (chance of happening in cells with low number of particles)
-                condition=np.linalg.norm(self.velocities[randomParticles[0][0]]-self.velocities[randomParticles[1][0]])/(np.max(velDiff))
+                condition=np.linalg.norm(self.velocities[randomParticles[0][0]]-self.velocities[randomParticles[1][0]])/velMax
                 if condition>self.rng.random(1):
-                    n+=1
                     velCM=0.5*np.array(self.velocities[randomParticles[0][0]]+self.velocities[randomParticles[1][0]])
                     velR=np.linalg.norm(self.velocities[randomParticles[0][0]]-self.velocities[randomParticles[1][0]])*self.uniformAngleGeneration()
                     self.velocities[randomParticles[0][0]]=velCM+0.5*velR
@@ -125,7 +122,3 @@ class Simulation:
         ax.set_ylabel("y position")
         ax.set_zlabel("z position")
         plt.show()
-
-test=Simulation()
-test.run()
-test.plot()
