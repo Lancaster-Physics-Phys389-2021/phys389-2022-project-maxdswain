@@ -6,27 +6,30 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from itertools import product, combinations
 from copy import deepcopy
+import json
 
 #implement json configuration file, mean vx, vy, vyz, mean kinetic energy vs time. 2D plots xy, yz etc, test initialisation of histogram vx, vy, vz vs maxwell plots - animate these + detailed quality comments
 class Simulation:
 
     #research range of values acceptable based on mean path length and constraints for a dilute gas
     def __init__(self):
-        self.N=50 #number of particles - this can represent Ne effective particles in a physical system, currently because N is small in testing Ne=N but when simulating a gas with large Ne, N would be a fraction of Ne - write about the fraction in the report
+        with open("config.json", "r") as f:
+            config=json.load(f)
+        self.N=config["N"] #number of particles - this can represent Ne effective particles in a physical system, currently because N is small in testing Ne=N but when simulating a gas with large Ne, N would be a fraction of Ne - write about the fraction in the report
+        self.dT=config["Time Step"] #time step
+        self.timeIntervals=config["Time Intervals"]
+        self.T=config["Temperature (K)"] #temperature in Kelvin
+        self.length=config["Length of Box"] #length of the sides of the box in pm
+        self.k=config["Boltzmann Constant"] #Boltzmann constant
+        self.m=config["Mass"] #mass of one molecule of oxygen in kg
+        self.effectiveDiamter=config["Effective Diameter"] #effective diameter of oxygen in pm
+        self.walls=config["Walls"] #list of 6 walls 0 - periodic, 1 - specular, 2 - thermal; check folder for cube with labelled faces, list is in ascending order of index.
         self.Ne=1*self.N #number of effective particles
-        self.dT=0.1 #time step
-        self.timeIntervals=500
-        self.T=50 #temperature in Kelvin
-        self.length=1000 #length of the sides of the box in pm
-        self.k=constants.k #Boltzmann constant
-        self.m=32*constants.atomic_mass #mass of one molecule of oxygen in kg
-        self.effectiveDiamter=346 #effective diameter of oxygen in pm
         self.numberDensity=self.N/(self.length)**3
         self.rng=np.random.default_rng(seed=11)
         deltaZ=np.max([num for num in range(1, self.length) if self.length%num==0 and num<self.meanPathLength()])
         self.cells=[[deltaZ*i, (i+1)*deltaZ] for i in range(int(self.length/deltaZ))]
         self.cellVolume=deltaZ*self.length**2
-        self.walls=[0, 2, 0, 1, 0, 1] #list of 6 walls 0 - periodic, 1 - specular, 2 - thermal; check folder for cube with labelled faces, list is in ascending order of index.
 
     def uniformAngleGeneration(self):
         azimuthal=2*constants.pi*self.rng.random(None)
@@ -122,3 +125,7 @@ class Simulation:
         ax.set_ylabel("y position")
         ax.set_zlabel("z position")
         plt.show()
+
+test=Simulation()
+test.run()
+test.plot()
