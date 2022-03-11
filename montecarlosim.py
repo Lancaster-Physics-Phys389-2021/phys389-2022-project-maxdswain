@@ -7,7 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from itertools import product, combinations
 from copy import deepcopy
 
-#mean vx, vy, vyz, mean kinetic energy vs time. 2D plots xy, yz etc, test initialisation of histogram vx, vy, vz vs maxwell plots - animate these
+#implement json configuration file, mean vx, vy, vyz, mean kinetic energy vs time. 2D plots xy, yz etc, test initialisation of histogram vx, vy, vz vs maxwell plots - animate these + detailed quality comments
 class Simulation:
 
     #research range of values acceptable based on mean path length and constraints for a dilute gas
