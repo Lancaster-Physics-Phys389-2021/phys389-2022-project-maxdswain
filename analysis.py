@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import mpl_toolkits.mplot3d.axes3d as p3
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.animation as animation
 from itertools import product, combinations
 
@@ -18,7 +18,7 @@ class Analysis:
     def animate(self):
         iterations=int(self.df.shape[0]/100)
         fig=plt.figure()
-        ax=p3.Axes3D(fig)
+        ax=fig.add_subplot(111, projection="3d")
         scatters=[ax.scatter(self.df["Position"][0][i][0], self.df["Position"][0][i][1], self.df["Position"][0][i][2], c="black") for i in range(self.df["Position"][0].shape[0])]
         r=[0, 1000]
         for s, e in combinations(np.array(list(product(r, r, r))), 2):

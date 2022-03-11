@@ -57,8 +57,9 @@ class TestDynamics:
         testSimulation.velocities=np.array([[3, 4, 2], [3, 1, 3], [5, 5, 1]])
         testSimulation.length=5
         testSimulation.dT=0.1
+        testSimulation.N=3
         testSimulation.particle_collision_detection()
-        assert (testSimulation.velocities==np.array([[1, 0, 0], [4, 5, 1], [1, 2, 1]])).all(), "Particle collision detection is not working correctly"
+        assert (testSimulation.velocities==np.array([[4, 1, 3], [1, 3, 1], [5, 5, 1]])).all(), "Particle collision detection is not working correctly"
 
 class TestGeneral:
     def test_meanFreePathLength(self):
