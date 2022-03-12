@@ -6,9 +6,14 @@ import matplotlib.animation as animation
 from itertools import product, combinations
 from scipy.stats import maxwell
 
-def animation_frame(iteration, df, scatters, k):
+def animation_frame(iteration, df, scatters):
     for i in range(df["Position"][0].shape[0]):
-        scatters[i]._offsets3d=(df["Position"][iteration*k][i, 0:1], df["Position"][iteration*k][i, 1:2], df["Position"][iteration*k][i, 2:])
+        scatters[i]._offsets3d=(df["Position"][iteration][i, 0:1], df["Position"][iteration][i, 1:2], df["Position"][iteration][i, 2:])
+    return scatters
+
+def animation_frame2D(iteration, df, scatters):
+    for i in range(df["Position"][0].shape[0]):
+        scatters[i]._offsets=([[df["Position"][iteration][i, 0], df["Position"][iteration][i, 1]]])
     return scatters
 
 class Analysis:
@@ -19,7 +24,7 @@ class Analysis:
         self.size=self.df.shape[0]
 
     def animate(self):
-        iterations=int(self.size/100)
+        iterations=int(self.size)
         fig=plt.figure()
         ax=fig.add_subplot(111, projection="3d")
         scatters=[ax.scatter(self.df["Position"][0][i][0], self.df["Position"][0][i][1], self.df["Position"][0][i][2], c="black") for i in range(self.N)]
@@ -31,10 +36,9 @@ class Analysis:
         ax.set_ylabel("y position")
         ax.set_zlabel("z position")
         ax.view_init(25, 10)
-        ani=animation.FuncAnimation(fig, animation_frame, iterations, fargs=(self.df, scatters, 100), blit=False, repeat=True)
-        #writer=animation.FFMpegWriter(fps=60)
-        writer=animation.PillowWriter(fps=60) 
-        ani.save("animation.gif", writer=writer)
+        ani=animation.FuncAnimation(fig, animation_frame, iterations, fargs=(self.df, scatters), blit=False, repeat=True)
+        writer=animation.FFMpegWriter(fps=30)
+        ani.save("animation.mp4", writer=writer)
         plt.show()
 
     def plotMeanVel(self):
@@ -50,7 +54,14 @@ class Analysis:
         plt.show()
 
     def animate2D(self):
-        pass
+        fig, ax=plt.subplots()
+        scatters=[ax.scatter(self.df["Position"][0][i][0], self.df["Position"][0][i][1], c="black") for i in range(self.N)]
+        ax.set_xlabel("x position")
+        ax.set_ylabel("y position")
+        ani=animation.FuncAnimation(fig, animation_frame2D, int(self.size), fargs=(self.df, scatters), blit=False, repeat=True)
+        writer=animation.FFMpegWriter(fps=30)
+        ani.save("animation2D.mp4", writer=writer)
+        plt.show()
 
     def maxwellHist(self):
         x=np.linspace(0, 25, 100)
@@ -67,4 +78,4 @@ class Analysis:
 
 if __name__=="__main__":
     test=Analysis()
-    test.maxwellHist()
+    test.animate2D()
