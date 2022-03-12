@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.animation as animation
 from itertools import product, combinations
+from scipy.stats import maxwell
 
 def animation_frame(iteration, df, scatters, k):
     for i in range(df["Position"][0].shape[0]):
@@ -43,16 +44,26 @@ class Analysis:
         plt.show()
 
     def plotMeanKE(self):
-        pass
+        mass=5.31372501312e-26 #from config
+        meanKE=[0.5*mass*np.mean(np.linalg.norm(self.df["Velocity"][i], axis=0))**2 for i in range(self.size)]
+        plt.plot(self.df["Time"], meanKE)
+        plt.show()
 
     def animate2D(self):
         pass
 
     def maxwellHist(self):
-        pass
+        x=np.linspace(0, 25, 100)
+        r=[np.linalg.norm(self.df["Velocity"][0][i]) for i in range(self.N)]
+        params=maxwell.fit(r, floc=0)
+        fig, ax=plt.subplots(1, 1)
+        ax.plot(x, maxwell.pdf(x, *params), 'r-', lw=3, alpha=0.6, label="maxwell pdf")
+        ax.hist(r, density=True, histtype="stepfilled", alpha=0.3)
+        ax.legend(loc="best", frameon=False)
+        plt.show()
 
     def animateHist(self):
         pass
 
 test=Analysis()
-test.plotMeanVel()
+test.maxwellHist()
