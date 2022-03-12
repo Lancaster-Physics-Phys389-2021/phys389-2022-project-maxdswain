@@ -14,12 +14,14 @@ class Analysis:
 
     def __init__(self):
         self.df=pd.read_pickle("Simulation_Data.pkl")
+        self.N=self.df["Position"][0].shape[0]
+        self.size=self.df.shape[0]
 
     def animate(self):
-        iterations=int(self.df.shape[0]/100)
+        iterations=int(self.size/100)
         fig=plt.figure()
         ax=fig.add_subplot(111, projection="3d")
-        scatters=[ax.scatter(self.df["Position"][0][i][0], self.df["Position"][0][i][1], self.df["Position"][0][i][2], c="black") for i in range(self.df["Position"][0].shape[0])]
+        scatters=[ax.scatter(self.df["Position"][0][i][0], self.df["Position"][0][i][1], self.df["Position"][0][i][2], c="black") for i in range(self.N)]
         r=[0, 1000]
         for s, e in combinations(np.array(list(product(r, r, r))), 2):
             if np.sum(np.abs(s-e)) == r[1]-r[0]:
@@ -34,5 +36,23 @@ class Analysis:
         ani.save("animation.gif", writer=writer)
         plt.show()
 
+    def plotMeanVel(self):
+        component=0 #0, 1, 2 (x, y, z)
+        meanVel=[np.mean([self.df["Velocity"][t][i][component] for i in range(self.N)]) for t in range(self.size)]
+        plt.plot(self.df["Time"], meanVel)
+        plt.show()
+
+    def plotMeanKE(self):
+        pass
+
+    def animate2D(self):
+        pass
+
+    def maxwellHist(self):
+        pass
+
+    def animateHist(self):
+        pass
+
 test=Analysis()
-test.animate()
+test.plotMeanVel()

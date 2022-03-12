@@ -1,6 +1,6 @@
 {
     "N": 50,
-    "Time Step": 0.1,
+    "Time Step": 15,
     "Time Intervals": 500,
     "Temperature (K)": 50,
     "Length of Box": 1000,
