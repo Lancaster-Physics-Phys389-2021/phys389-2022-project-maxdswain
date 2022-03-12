@@ -39,7 +39,7 @@ class Analysis:
 
     def plotMeanVel(self):
         component=0 #0, 1, 2 (x, y, z)
-        meanVel=[np.mean([self.df["Velocity"][t][i][component] for i in range(self.N)]) for t in range(self.size)]
+        meanVel=[np.mean(self.df["Velocity"][i][:, component]) for i in range(self.size)]
         plt.plot(self.df["Time"], meanVel)
         plt.show()
 
@@ -54,7 +54,7 @@ class Analysis:
 
     def maxwellHist(self):
         x=np.linspace(0, 25, 100)
-        r=[np.linalg.norm(self.df["Velocity"][0][i]) for i in range(self.N)]
+        r=np.linalg.norm(self.df["Velocity"][0], axis=1)
         params=maxwell.fit(r, floc=0)
         fig, ax=plt.subplots(1, 1)
         ax.plot(x, maxwell.pdf(x, *params), 'r-', lw=3, alpha=0.6, label="maxwell pdf")
@@ -65,5 +65,6 @@ class Analysis:
     def animateHist(self):
         pass
 
-test=Analysis()
-test.maxwellHist()
+if __name__=="__main__":
+    test=Analysis()
+    test.maxwellHist()

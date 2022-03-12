@@ -7,7 +7,7 @@ from itertools import product, combinations
 from copy import deepcopy
 import json
 
-#2D plots xy, yz etc; test initialisation of histogram vx, vy, vz vs maxwell plots - animate these + detailed quality comments
+#2D plots xy, yz etc; test initialisation of histogram vx, vy, vz vs maxwell plots - animate these + check conserved quantities are conserved + detailed quality comments
 class Simulation:
 
     #research range of values acceptable based on mean path length and constraints for a dilute gas
@@ -58,7 +58,7 @@ class Simulation:
 
     def particle_collision_detection(self):
         for cell in self.cells:
-            posZ=[self.positions[i][2] for i in range(self.N)] #taking only z components as cells are divided in z axis
+            posZ=self.positions[:, 2] #taking only z components as cells are divided in z axis
             particlesInCell=np.argwhere((posZ>=cell[0]) & (posZ<cell[1]))
             numberOfParticlesInCell=len(particlesInCell)
             if numberOfParticlesInCell<2: continue
@@ -66,10 +66,11 @@ class Simulation:
             numberOfCollisions=np.rint(numberOfParticlesInCell**2*np.pi*self.effectiveDiamter**2*velMax*self.Ne*self.dT/(2*self.cellVolume)).astype(int)
             for x in range(numberOfCollisions):
                 randomParticles=[particlesInCell[self.rng.integers(numberOfParticlesInCell)], particlesInCell[self.rng.integers(numberOfParticlesInCell)]] #need to prevent it from randomly selecting the same particle (chance of happening in cells with low number of particles)
-                condition=np.linalg.norm(self.velocities[randomParticles[0][0]]-self.velocities[randomParticles[1][0]])/velMax
+                norm=np.linalg.norm(self.velocities[randomParticles[0][0]]-self.velocities[randomParticles[1][0]])
+                condition=norm/velMax
                 if condition>self.rng.random(1):
                     velCM=0.5*np.array(self.velocities[randomParticles[0][0]]+self.velocities[randomParticles[1][0]])
-                    velR=np.linalg.norm(self.velocities[randomParticles[0][0]]-self.velocities[randomParticles[1][0]])*self.uniformAngleGeneration()
+                    velR=norm*self.uniformAngleGeneration()
                     self.velocities[randomParticles[0][0]]=velCM+0.5*velR
                     self.velocities[randomParticles[1][0]]=velCM-0.5*velR
 
