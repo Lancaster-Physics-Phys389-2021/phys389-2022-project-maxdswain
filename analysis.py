@@ -13,7 +13,7 @@ def animation_frame(iteration, df, scatters, k):
 class Analysis:
 
     def __init__(self):
-        self.df=pd.read_pickle("Simulation_Data.csv")
+        self.df=pd.read_pickle("Simulation_Data.pkl")
 
     def animate(self):
         iterations=int(self.df.shape[0]/100)

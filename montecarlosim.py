@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 from scipy.stats import maxwell
-from scipy import constants
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from itertools import product, combinations
@@ -32,7 +31,7 @@ class Simulation:
         self.cellVolume=deltaZ*self.length**2
 
     def uniformAngleGeneration(self):
-        azimuthal=2*constants.pi*self.rng.random(None)
+        azimuthal=2*np.pi*self.rng.random(None)
         q=2*self.rng.random(None)-1
         cosTheta, sinTheta=q, np.sqrt(1-q**2)
         return np.array([sinTheta*np.cos(azimuthal), sinTheta*np.sin(azimuthal), cosTheta])
@@ -43,7 +42,7 @@ class Simulation:
         self.velocities=np.array([self.speeds[i][0]*self.uniformAngleGeneration() for i in range(self.N)]).reshape(self.N, 3)
 
     def meanPathLength(self):
-        return 1/(np.sqrt(2)*constants.pi*(self.effectiveDiamter**2)*self.numberDensity)
+        return 1/(np.sqrt(2)*np.pi*(self.effectiveDiamter**2)*self.numberDensity)
 
     def update(self):
         self.positions+=np.dot(self.velocities, self.dT)
@@ -64,7 +63,7 @@ class Simulation:
             numberOfParticlesInCell=len(particlesInCell)
             if numberOfParticlesInCell<2: continue
             velMax=25 #chosen by calculating the velocity difference between particles then looking at the maxes of that over numerous iterations - is an overestimate
-            numberOfCollisions=np.rint(numberOfParticlesInCell**2*constants.pi*self.effectiveDiamter**2*velMax*self.Ne*self.dT/(2*self.cellVolume)).astype(int)
+            numberOfCollisions=np.rint(numberOfParticlesInCell**2*np.pi*self.effectiveDiamter**2*velMax*self.Ne*self.dT/(2*self.cellVolume)).astype(int)
             for x in range(numberOfCollisions):
                 randomParticles=[particlesInCell[self.rng.integers(numberOfParticlesInCell)], particlesInCell[self.rng.integers(numberOfParticlesInCell)]] #need to prevent it from randomly selecting the same particle (chance of happening in cells with low number of particles)
                 condition=np.linalg.norm(self.velocities[randomParticles[0][0]]-self.velocities[randomParticles[1][0]])/velMax
@@ -85,7 +84,7 @@ class Simulation:
             tempVel.append(deepcopy(self.velocities))
         self.time=[i*self.dT for i in range(self.timeIntervals+1)]
         df=pd.DataFrame(data={"Time": self.time, "Position": tempPos, "Velocity": tempVel})
-        df.to_pickle("Simulation_Data.csv")
+        df.to_pickle("Simulation_Data.pkl")
 
     def specular_surface(self, indices):
         self.velocities[indices[0]][indices[1]]=-self.velocities[indices[0]][indices[1]]
