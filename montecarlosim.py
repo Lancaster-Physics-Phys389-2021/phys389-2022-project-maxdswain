@@ -7,10 +7,9 @@ from itertools import product, combinations
 from copy import deepcopy
 import json
 
-#2D plots xy, yz etc; test initialisation of histogram vx, vy, vz vs maxwell plots - animate these + check conserved quantities are conserved + detailed quality comments
+#animate histogram vx, vy, vz vs maxwell plots; check conserved quantities are conserved; detailed quality comments and docstrings
 class Simulation:
 
-    #research range of values acceptable based on mean path length and constraints for a dilute gas
     def __init__(self):
         with open("config.json", "r") as f:
             config=json.load(f)
