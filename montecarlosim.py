@@ -48,12 +48,11 @@ class Simulation:
 
     #searches through positions finding any values out of the cube then runs wall collision method appropriate to the designated wall
     def wall_collision_detection(self):
-        indices1, indices2=np.where(self.positions<=0), np.where(self.positions >= self.length)
-        walls=[self.periodic_boundary, self.specular_surface, self.thermal_wall]
-        for i, j in enumerate(indices1[1]):
-            walls[self.walls[j*2]]([indices1[0][i], indices1[1][i]])
-        for i, j in enumerate(indices2[1]):
-            walls[self.walls[j*2+1]]([indices2[0][i], indices2[1][i]])
+        callWallCollision=[self.periodic_boundary, self.specular_surface, self.thermal_wall]
+        for i, j in np.argwhere(self.positions<=0):
+            callWallCollision[self.walls[j*2]]([i, j])
+        for i, j in np.argwhere(self.positions >= self.length):
+            callWallCollision[self.walls[j*2+1]]([i, j])
 
     def particle_collision_detection(self):
         for cell in self.cells:
