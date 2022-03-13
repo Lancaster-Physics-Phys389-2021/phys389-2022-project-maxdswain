@@ -7,7 +7,7 @@ from itertools import product, combinations
 from copy import deepcopy
 import json
 
-#animate histogram vx, vy, vz vs maxwell plots; check conserved quantities are conserved; detailed quality comments and docstrings
+#check conserved quantities are conserved; detailed quality comments and docstrings
 class Simulation:
 
     def __init__(self):

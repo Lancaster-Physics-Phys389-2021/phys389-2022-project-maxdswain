@@ -6,6 +6,8 @@ import matplotlib.animation as animation
 from itertools import product, combinations
 from scipy.stats import maxwell
 
+df=pd.read_pickle("Simulation_Data.pkl")
+
 def animation_frame(iteration, df, scatters):
     for i in range(df["Position"][0].shape[0]):
         scatters[i]._offsets3d=(df["Position"][iteration][i, 0:1], df["Position"][iteration][i, 1:2], df["Position"][iteration][i, 2:])
@@ -16,13 +18,19 @@ def animation_frame2D(iteration, df, scatters):
         scatters[i]._offsets=([[df["Position"][iteration][i, 0], df["Position"][iteration][i, 1]]])
     return scatters
 
-def animation_hist(iteration, df, scatters):
-    pass
+def prepare_animation_hist(bar_container):
+    def animation_hist(iteration):
+        r=np.linalg.norm(df["Velocity"][iteration], axis=1)
+        n, _=np.histogram(r)
+        for count, rect in zip(n, bar_container.patches):
+            rect.set_height(count)
+        return bar_container.patches
+    return animation_hist
 
 class Analysis:
 
     def __init__(self):
-        self.df=pd.read_pickle("Simulation_Data.pkl")
+        self.df=df
         self.N=self.df["Position"][0].shape[0]
         self.size=self.df.shape[0]
 
@@ -77,7 +85,13 @@ class Analysis:
         plt.show()
 
     def animateHist(self):
-        pass
+        fig, ax=plt.subplots()
+        r=np.linalg.norm(self.df["Velocity"][0], axis=1)
+        _, _, bar_container=ax.hist(r, alpha=0.3)
+        ani=animation.FuncAnimation(fig, prepare_animation_hist(bar_container), int(self.size), repeat=True, blit=True)
+        writer=animation.FFMpegWriter(fps=30)
+        ani.save("animationHist.mp4", writer=writer)
+        plt.show()
 
 if __name__=="__main__":
     test=Analysis()
