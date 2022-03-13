@@ -16,6 +16,9 @@ def animation_frame2D(iteration, df, scatters):
         scatters[i]._offsets=([[df["Position"][iteration][i, 0], df["Position"][iteration][i, 1]]])
     return scatters
 
+def animation_hist(iteration, df, scatters):
+    pass
+
 class Analysis:
 
     def __init__(self):
