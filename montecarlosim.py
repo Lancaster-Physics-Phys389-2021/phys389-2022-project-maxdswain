@@ -12,7 +12,7 @@ import json
 def set_seed(value):
     np.random.seed(value)
 
-#check conserved quantities are conserved; detailed quality comments and docstrings; set suitable initial conditions and start getting results
+#compare meanKE with BGK model; detailed quality comments and docstrings; set suitable initial conditions (paper + gh) and start getting results
 class Simulation:
 
     def __init__(self):
@@ -21,7 +21,7 @@ class Simulation:
         self.N=config["N"] #number of particles - this can represent Ne effective particles in a physical system, currently because N is small in testing Ne=N but when simulating a gas with large Ne, N would be a fraction of Ne - write about the fraction in the report
         self.dT=config["Time Step"] #time step
         self.timeIntervals=config["Time Intervals"]
-        self.T=config["Temperature (K)"] #temperature in Kelvin
+        self.Tw=config["Wall Temperature (K)"] #temperature in Kelvin of the thermal wall
         self.length=config["Length of Box"] #length of the sides of the box in pm
         self.k=config["Boltzmann Constant"] #Boltzmann constant
         self.m=config["Mass"] #mass of one molecule of oxygen in kg
@@ -107,9 +107,9 @@ class Simulation:
         self.velocities[indices[0]][indices[1]]=-self.velocities[indices[0]][indices[1]]
 
     def thermal_wall(self, indices):
-        self.velocities[indices[0]][indices[1]]=-np.sign(self.velocities[indices[0]][indices[1]])*abs(np.sqrt(self.T)*self.rng.normal(0, 1))
+        self.velocities[indices[0]][indices[1]]=-np.sign(self.velocities[indices[0]][indices[1]])*abs(np.sqrt(self.Tw)*self.rng.normal(0, 1))
         for i in [x for x in range(3) if x!=indices[1]]:
-            self.velocities[indices[0]][i]=np.sqrt(-2*self.T*np.log(self.rng.random(None)))
+            self.velocities[indices[0]][i]=np.sqrt(-2*self.Tw*np.log(self.rng.random(None)))
 
     def periodic_boundary(self, indices):
         if self.velocities[indices[0]][indices[1]]<0: self.positions[indices[0]][indices[1]]+=self.length

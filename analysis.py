@@ -52,7 +52,7 @@ class Analysis:
         ani.save("animation.mp4", writer=writer)
         plt.show()
 
-    def plotMeanVel(self):
+    def plotMeanVel(self): #this is the same as the fluid velocity as the mass of all the particles is the same
         component=0 #0, 1, 2 (x, y, z)
         meanVel=[np.mean(self.df["Velocity"][i][:, component]) for i in range(self.size)]
         plt.plot(self.df["Time"], meanVel)
@@ -62,6 +62,17 @@ class Analysis:
         mass=5.31372501312e-26 #from config
         meanKE=[0.5*mass*np.mean(np.linalg.norm(self.df["Velocity"][i], axis=0))**2 for i in range(self.size)]
         plt.plot(self.df["Time"], meanKE)
+        plt.show()
+
+    def plotTemp(self):
+        fig, ax=plt.subplots()
+        mass=5.31372501312e-26 #from config
+        k=1.380649e-23 #from config
+        meanVel=np.array([np.mean(self.df["Velocity"][i][:]) for i in range(self.size)])
+        meanKEOverM=np.array([0.5*np.mean(np.linalg.norm(self.df["Velocity"][i], axis=0))**2 for i in range(self.size)])
+        T=2/3*mass/k*(meanKEOverM-1/2*np.linalg.norm(meanVel, axis=0))
+        ax.plot(self.df["Time"], T)
+        ax.legend()
         plt.show()
 
     def animate2D(self):
@@ -95,4 +106,4 @@ class Analysis:
 
 if __name__=="__main__":
     test=Analysis()
-    test.animate2D()
+    test.plotTemp()
