@@ -64,7 +64,7 @@ class TestDynamics:
 class TestGeneral:
     def test_meanFreePathLength(self):
         testSimulation.numberDensity=10
-        testSimulation.effectiveDiamter=25
+        testSimulation.effectiveDiameter=25
         assert np.around(testSimulation.meanPathLength(), decimals=8)==3.601*10**-5, "Mean free path length is not being calculated correctly"
 
     def test_linearMomentum(self):
