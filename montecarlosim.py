@@ -8,25 +8,51 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import json
 
+#TODO: compare meanKE with BGK model; detailed quality comments and docstrings; set suitable initial conditions (paper + gh) and start getting results
+
+#Function to seed NumPy random number generation for numba
 @njit
 def set_seed(value):
     np.random.seed(value)
 
-#compare meanKE with BGK model; detailed quality comments and docstrings; set suitable initial conditions (paper + gh) and start getting results
 class Simulation:
-
+    """
+    Class of intialising and running the 3D particle in a box Monte Carlo simulation as well as outputting data.
+    
+    Parameters
+    ----------
+    N: int
+        Number of particles in the simulation, this can represent Ne effective particles in a physical system.
+    dT: float
+        The value of the time step between time intervals in seconds.
+    timeIntervals: int
+        The number of time steps that will be ran if the simulation is ran.
+    Tw: float
+        Temperature of the thermal wall in Kelvin.
+    length: float
+        Length of the sides of the box in pm.
+    k: float
+        Boltzmann constant in standard SI units.
+    m: float
+        Mass of the particles in the simulation in kg.
+    effectiveDiameter: float
+        Effective diameter of the particles in the simulation in pm.
+    walls: list
+        List of ints representing the 6 walls of the cube, 0 - periodic, 1 - specular, 2 - thermal.
+        The list is arranged in the following way [-x, +x, -y, +y, -z, +z]
+    """
     def __init__(self):
         with open("config.json", "r") as f:
             config=json.load(f)
-        self.N=config["N"] #number of particles - this can represent Ne effective particles in a physical system, currently because N is small in testing Ne=N but when simulating a gas with large Ne, N would be a fraction of Ne - write about the fraction in the report
-        self.dT=config["Time Step"] #time step
+        self.N=config["N"]
+        self.dT=config["Time Step"]
         self.timeIntervals=config["Time Intervals"]
-        self.Tw=config["Wall Temperature (K)"] #temperature in Kelvin of the thermal wall
-        self.length=config["Length of Box"] #length of the sides of the box in pm
-        self.k=config["Boltzmann Constant"] #Boltzmann constant
-        self.m=config["Mass"] #mass of one molecule of oxygen in kg
-        self.effectiveDiameter=config["Effective Diameter"] #effective diameter of oxygen in pm
-        self.walls=config["Walls"] #list of 6 walls 0 - periodic, 1 - specular, 2 - thermal; check folder for cube with labelled faces, list is in ascending order of index.
+        self.Tw=config["Wall Temperature (K)"]
+        self.length=config["Length of Box"]
+        self.k=config["Boltzmann Constant"]
+        self.m=config["Mass"]
+        self.effectiveDiameter=config["Effective Diameter"]
+        self.walls=config["Walls"]
         self.Ne=1*self.N #number of effective particles
         self.numberDensity=self.N/(self.length)**3
         self.rng=np.random.default_rng(seed=11)
