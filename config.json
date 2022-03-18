@@ -1,8 +1,8 @@
 {
     "N": 50,
-    "Time Step": 0.1,
+    "Time Step": 10,
     "Time Intervals": 500,
-    "Temperature (K)": 50,
+    "Wall Temperature (K)": 50,
     "Length of Box": 1000,
     "Boltzmann Constant": 1.380649e-23,
     "Mass": 5.31372501312e-26,

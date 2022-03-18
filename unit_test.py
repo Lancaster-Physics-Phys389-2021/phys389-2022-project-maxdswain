@@ -14,7 +14,6 @@ class TestIntialisation:
         assert len(np.argwhere((testSimulation.positions>=testSimulation.length) & (testSimulation.positions<0)))==0, "Particles have been initialised outside of the box"
         assert testSimulation.velocities.shape[0]==testSimulation.N and testSimulation.velocities.shape[1]==3, "Shape of particles velocities is incorrect"
 
-    #length of array is 3, values fall between -1 and 1
     def test_uniformAngleGeneration(self):
         angleArray=testSimulation.uniformAngleGeneration()
         assert angleArray.shape[0]==3, "Shape of the angle array is incorrect"
@@ -64,7 +63,7 @@ class TestDynamics:
 class TestGeneral:
     def test_meanFreePathLength(self):
         testSimulation.numberDensity=10
-        testSimulation.effectiveDiamter=25
+        testSimulation.effectiveDiameter=25
         assert np.around(testSimulation.meanPathLength(), decimals=8)==3.601*10**-5, "Mean free path length is not being calculated correctly"
 
     def test_linearMomentum(self):
