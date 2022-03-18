@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import json
 
-#TODO: compare meanKE with BGK model; detailed quality comments and docstrings; set suitable initial conditions (paper + gh) and start getting results
+#set suitable initial conditions (paper + gh) and start getting results
 
-#Function to seed NumPy random number generation for numba
+#Function to seed NumPy random number generation for Numba
 @njit
 def set_seed(value):
     np.random.seed(value)
@@ -55,12 +55,14 @@ class Simulation:
         self.walls=config["Walls"]
         self.Ne=1*self.N #number of effective particles
         self.numberDensity=self.N/(self.length)**3
-        self.rng=np.random.default_rng(seed=11)
-        set_seed(11)
+        self.rng=np.random.default_rng(seed=11) #seeding rng in general python code
+        set_seed(11) #seeding rng for Numba
+        #calculating the largest possible value for the width of the cells given that it has to be smaller than the mean free path length
         deltaZ=np.max([num for num in range(1, self.length) if self.length%num==0 and num<self.meanPathLength()])
         self.cells=np.array([[deltaZ*i, (i+1)*deltaZ] for i in range(int(self.length/deltaZ))])
         self.cellVolume=deltaZ*self.length**2
 
+    #Generates an NumPy array from spherical coordinates that when multiplied by a magnitude generates 3D Cartesian coordinates at uniformly distribute angles
     @staticmethod
     @njit
     def uniformAngleGeneration():
@@ -69,18 +71,20 @@ class Simulation:
         cosTheta, sinTheta=q, np.sqrt(1-q**2)
         return np.array([sinTheta*np.cos(azimuthal), sinTheta*np.sin(azimuthal), cosTheta])
 
+    #Initialise positions using a random distribution inside the cube and velocities using a Maxwell distribution
     def randomGeneration(self):
         self.positions=self.rng.integers(low=0, high=self.length+1, size=(self.N, 3)).astype(float) #randomly generated positions of N particles in pm
-        self.speeds=maxwell.rvs(scale=5, size=self.N, random_state=11) #velocities randomly generated using Maxwell distribution - adjust scale as appropriate to adjust speeds
+        self.speeds=maxwell.rvs(scale=5, size=self.N, random_state=11)
         self.velocities=np.array([self.speeds[i]*self.uniformAngleGeneration() for i in range(self.N)]).reshape(self.N, 3)
 
     def meanPathLength(self):
         return 1/(np.sqrt(2)*np.pi*(self.effectiveDiameter**2)*self.numberDensity)
 
+    #Updates positions of all the particles in the simulation using the Euler method
     def update(self):
         self.positions+=np.dot(self.velocities, self.dT)
 
-    #searches through positions finding any values out of the cube then runs wall collision method appropriate to the designated wall
+    #Searches through positions finding any values out of the cube then runs wall collision method appropriate to the designated wall
     def wall_collision_detection(self):
         callWallCollision=[self.periodic_boundary, self.specular_surface, self.thermal_wall]
         for i, j in np.argwhere(self.positions<=0):
@@ -88,6 +92,7 @@ class Simulation:
         for i, j in np.argwhere(self.positions >= self.length):
             callWallCollision[self.walls[j*2+1]]([i, j])
 
+    #Runs Monte-Carlo determining the collisions that take place
     @staticmethod
     @njit
     def particle_collision_detection(cells, positions, effectiveDiameter, Ne, dT, cellVolume, velocities, uniformAngleGeneration):
@@ -108,6 +113,7 @@ class Simulation:
                     velocities[randomParticleTwo[0]]=velCM-0.5*velR
         return velocities
 
+    #Runs the whole simulation for chosen time intervals, stores data after every time step  and ouputs this into a pandas DataFrame
     def run(self):
         self.randomGeneration()
         tempPos, tempVel=[deepcopy(self.positions)], [deepcopy(self.velocities)]
@@ -151,6 +157,7 @@ class Simulation:
     def meanKineticEnergy(self):
         return 0.5*self.m*np.mean(np.linalg.norm(self.velocities, axis=0))**2
 
+    #3D scatter plot of the positions of every particle in the simulation at the current point in time with a red outline of the cube
     def plot(self):
         fig=plt.figure()
         ax=fig.add_subplot(111, projection="3d")
