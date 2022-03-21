@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import json
 
-#set suitable initial conditions (paper + gh) and start getting results
+#improve v gen + Maxwell ani; ask about bgk for temp?; set suitable initial conditions (paper + gh) and start getting results; make code/comments more pythonic
 
 #Function to seed NumPy random number generation for Numba
 @njit
