@@ -1,2 +1,11 @@
-[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-f059dc9a6f8d3a56e377f745f24479a46679e63a5d9fe6f495e02850cd0d8118.svg)](https://classroom.github.com/online_ide?assignment_repo_id=7019751&assignment_repo_type=AssignmentRepo)
-# turbo-eureka
+# Python 3D Particles in a Box Classical Monte-Carlo Simulation
+This simulation uses the Monte-Carlo method to simulate N interacting particles in 3D. Particles interacted with periodic, specular and thermal walls of the box and various properties of the particles such as the mean velocity, mean kinetic energy, temperature were analysed and plotted. There is a variety of animated plots of the simulation elapsing in 3D as well as how the distribution of velocities change over time.
+
+### Libraries Used
+
+- Numpy
+- Numbas
+- scipy
+- pandas
+- matplotlib
+- json
