@@ -1,11 +1,12 @@
+from itertools import product, combinations
+import json
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.animation as animation
-from itertools import product, combinations
 from scipy.stats import maxwell
-import json
 
 # Read data to be analysed
 df = pd.read_pickle("Simulation_Data.pkl")
@@ -31,6 +32,7 @@ def prepare_animation_hist(bar_container):
             rect.set_height(count)
         return bar_container.patches
     return animation_hist
+
 
 class Analysis:
     """
@@ -79,23 +81,23 @@ class Analysis:
         plt.show()
 
     # Plots the mean velocity of one component (same as fluid velocity as mass of all particles is the same) vs time
-    def plotMeanVel(self):
+    def plot_mean_vel(self):
         component = 0 #0, 1, 2 (x, y, z)
         meanVel = [np.mean(self.df["Velocity"][i][:, component]) for i in range(self.size)]
         plt.plot(self.df["Time"], meanVel)
         plt.show()
 
     # Plots the mean kinetic energy of the system vs time
-    def plotMeanKE(self):
-        meanKE = [0.5 * self.mass * np.mean(np.linalg.norm(self.df["Velocity"][i], axis=0)) ** 2 for i in range(self.size)]
+    def plot_meanKE(self):
+        meanKE = [0.5 * self.mass * np.mean(np.linalg.norm(self.df["Velocity"][i], axis=0))**2 for i in range(self.size)]
         plt.plot(self.df["Time"], meanKE)
         plt.show()
 
     # Plots the temperature of the system vs time using equipartition theorem
-    def plotTemp(self):
+    def plot_temp(self):
         fig, ax = plt.subplots()
         meanVel = np.array([np.mean(self.df["Velocity"][i][:]) for i in range(self.size)])
-        meanKEOverM = np.array([0.5 * np.mean(np.linalg.norm(self.df["Velocity"][i], axis=0)) ** 2 for i in range(self.size)])
+        meanKEOverM = np.array([0.5 * np.mean(np.linalg.norm(self.df["Velocity"][i], axis=0))**2 for i in range(self.size)])
         T = 2/3 * self.mass / self.k * (meanKEOverM - 1/2 * np.linalg.norm(meanVel, axis=0))
         ax.plot(self.df["Time"], T)
         ax.legend()
@@ -113,7 +115,7 @@ class Analysis:
         plt.show()
 
     # Plots a histogram of the speed in the simulation against a Maxwell pdf plot for a given time in the simulation
-    def maxwellHist(self):
+    def maxwell_hist(self):
         x = np.linspace(-100, 250, 100)
         r = np.linalg.norm(self.df["Velocity"][0], axis=1)
         params = maxwell.fit(r, floc=0)
@@ -124,7 +126,7 @@ class Analysis:
         plt.show()
 
     # Animated histogram of speeds over time
-    def animateHist(self):
+    def animate_hist(self):
         fig, ax = plt.subplots()
         r = np.linalg.norm(self.df["Velocity"][0], axis=1)
         _, _, bar_container=ax.hist(r, alpha=0.3)
@@ -136,4 +138,4 @@ class Analysis:
 
 if __name__ == "__main__":
     test = Analysis()
-    test.animateHist()
+    test.animate_hist()
