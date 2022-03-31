@@ -3,10 +3,10 @@
     "Time Step": 10,
     "Time Intervals": 500,
     "Wall Temperature (K)": 500,
-    "Gas Temperature (K)": 300,
+    "Gas Temperature (K)": 30,
     "Length of Box": 100000,
     "Boltzmann Constant": 1.380649e-23,
     "Mass": 5.31372501312e-26,
     "Effective Diameter": 346,
-    "Walls": [0, 2, 0, 1, 0, 1]
+    "Walls": [1, 0, 1, 1, 0, 1]
 }

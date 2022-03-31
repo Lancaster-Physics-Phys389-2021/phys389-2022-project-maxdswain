@@ -100,7 +100,6 @@ class Analysis:
         meanKEOverM = np.array([0.5 * np.mean(np.linalg.norm(self.df["Velocity"][i], axis=0))**2 for i in range(self.size)])
         T = 2/3 * self.mass / self.k * (meanKEOverM - 1/2 * np.linalg.norm(meanVel, axis=0))
         ax.plot(self.df["Time"], T)
-        ax.legend()
         plt.show()
 
     # 2D scatter plot animation of the simulation
@@ -120,7 +119,7 @@ class Analysis:
         r = np.linalg.norm(self.df["Velocity"][0], axis=1)
         params = maxwell.fit(r, floc=0)
         fig, ax = plt.subplots(1, 1)
-        ax.plot(x, maxwell.pdf(x, *params), 'r-', lw=3, alpha=0.6, label="maxwell pdf")
+        ax.plot(x, maxwell.pdf(x, *params), "r-", lw=3, alpha=0.6, label="maxwell pdf")
         ax.hist(r, density=True, histtype="stepfilled", alpha=0.3)
         ax.legend(loc="best", frameon=False)
         plt.show()
@@ -135,7 +134,41 @@ class Analysis:
         ani.save("visuals/animationHist.mp4", writer=writer)
         plt.ylim(ymax=185)
         plt.show()
+    
+    # Plots a multiplot of all components of the mean velocity as well as a histogram of the initial distribution of speeds
+    def vel_multiplot(self):
+        fig, axs = plt.subplots(2, 2)
+        components=["x", "y", "z"]
+        for j in range(3):
+            meanVel = [np.mean(self.df["Velocity"][i][:, j]) for i in range(self.size)]
+            axs.flat[j].plot(self.df["Time"], meanVel)
+            axs.flat[j].set(xlabel="Time (s)", ylabel=f"Mean of the {components[j]} Component\n of Velocity (m/s)")
+        x = np.linspace(-3, 100, 100)
+        r = np.linalg.norm(self.df["Velocity"][0], axis=1)
+        params = maxwell.fit(r, floc=0)
+        axs[1, 1].plot(x, maxwell.pdf(x, *params), "r-", lw=3, alpha=0.6, label="Maxwell pdf")
+        axs[1, 1].hist(r, density=True, histtype="stepfilled", alpha=0.3)
+        axs[1, 1].legend(loc="best", frameon=False)
+        axs[1, 1].set(xlabel="Speed (m/s)", ylabel="Normalised Magnitude")
+        plt.tight_layout()
+        plt.savefig("visuals/vel_multiplot.png")
+        plt.show()
+
+    # Plots a multiplot of kinetic energy and temperature
+    def KE_temp_multiplot(self):
+        fig, axs = plt.subplots(2, sharex=True)
+        meanKE = [0.5 * self.mass * np.mean(np.linalg.norm(self.df["Velocity"][i], axis=0))**2 for i in range(self.size)]
+        axs[0].set(ylabel="Mean Kinetic Energy (J)")
+        axs[0].plot(self.df["Time"], meanKE)
+        meanVel = np.array([np.mean(self.df["Velocity"][i][:]) for i in range(self.size)])
+        meanKEOverM = np.array([0.5 * np.mean(np.linalg.norm(self.df["Velocity"][i], axis=0))**2 for i in range(self.size)])
+        T = 2/3 * self.mass / self.k * (meanKEOverM - 1/2 * np.linalg.norm(meanVel, axis=0))
+        axs[1].set(xlabel="Time (s)", ylabel="Temperature (K)")
+        axs[1].plot(self.df["Time"], T)
+        plt.savefig("visuals/KE_temp_multiplot.png")
+        plt.show()
 
 if __name__ == "__main__":
     test = Analysis()
-    test.animate_hist()
+    test.vel_multiplot()
+    test.KE_temp_multiplot()

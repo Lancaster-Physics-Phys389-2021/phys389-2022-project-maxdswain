@@ -8,8 +8,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-# Set suitable initial conditions (paper + gh) and start getting results
-
 # Function to seed NumPy random number generation for Numba
 @njit
 def set_seed(value):
@@ -108,7 +106,7 @@ class Simulation:
             velMax = 25  # Chosen by calculating the velocity difference between particles then looking at the maxes of that over numerous iterations - is an overestimate
             numberOfCollisions = int(np.rint(numberOfParticlesInCell**2 * np.pi * effectiveDiameter**2 * velMax * Ne * dT / (2 * cellVolume)))
             for x in range(numberOfCollisions):
-                randomParticlesOne, randomParticleTwo=particlesInCell[np.random.randint(numberOfParticlesInCell)], particlesInCell[np.random.randint(numberOfParticlesInCell)]
+                randomParticlesOne, randomParticleTwo = particlesInCell[np.random.randint(numberOfParticlesInCell)], particlesInCell[np.random.randint(numberOfParticlesInCell)]
                 norm = np.linalg.norm(velocities[randomParticlesOne[0]] - velocities[randomParticleTwo[0]])
                 if norm / velMax > np.random.random():
                     velCM = 0.5 * (velocities[randomParticlesOne[0]] + velocities[randomParticleTwo[0]])
@@ -170,4 +168,5 @@ class Simulation:
         ax.set_xlabel("x position")
         ax.set_ylabel("y position")
         ax.set_zlabel("z position")
+        plt.savefig("visuals/3D_scatter_plot.png")
         plt.show()
