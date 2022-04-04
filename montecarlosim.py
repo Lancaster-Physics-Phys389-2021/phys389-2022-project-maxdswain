@@ -165,8 +165,14 @@ class Simulation:
         for s, e in combinations(np.array(list(product(r, r, r))), 2):
             if np.sum(np.abs(s - e)) == r[1] - r[0]:
                 ax.plot3D(*zip(s, e), color="red")
-        ax.set_xlabel("x position")
-        ax.set_ylabel("y position")
-        ax.set_zlabel("z position")
+        ax.set_xlabel("x position (pm)")
+        ax.set_ylabel("y position (pm)")
+        ax.set_zlabel("z position (pm)")
         plt.savefig("visuals/3D_scatter_plot.png")
         plt.show()
+
+# Example code that could be used to run a simulation and plot the result of it
+if __name__ == "__main__":
+    example = Simulation()
+    example.run()
+    example.plot()

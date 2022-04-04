@@ -40,26 +40,26 @@ class TestDynamics:
         testSimulation.positions = np.array([[4, 17, 0], [3, 3, 4], [0, 2, 6]])
         testSimulation.velocities = np.array([[2, 4, 6], [3, 1, 3], [5, 5, 1]])
         testSimulation.wall_collision_detection()
-        assert (testSimulation.velocities == np.array([[2, -4, 6], [3, 1, 3], [5, 5, 1]])).all(), "Particles outside of the box have not been identified and dealt with correctly"
+        assert (testSimulation.velocities == np.array([[2, -4, 6], [3, 1, 3], [-5, 5, 1]])).all(), "Particles outside of the box have not been identified and dealt with correctly"
 
     # Test of the periodic wall method using an analytical solution I calculated
     def test_periodic_boundary(self):
         testSimulation.positions = np.array([[4, 2, 0], [3, 3, 4], [0, 2, 6]])
         testSimulation.length = 5
-        testSimulation.periodic_boundary([2, 2])
+        testSimulation.periodic_boundary((2, 2))
         assert (testSimulation.positions == np.array([[4, 2, 0], [3, 3, 4], [0, 2, 1]])).all(), "Periodic wall is not working correctly"
 
     # Test of the specular wall method using an analytical solution I calculated
     def test_specular_surface(self):
         testSimulation.velocities = np.array([[2, 4, 6], [3, 1, 3], [5, 5, 1]])
-        testSimulation.specular_surface([2, 2])
+        testSimulation.specular_surface((2, 2))
         assert (testSimulation.velocities == np.array([[2, 4, 6], [3, 1, 3], [5, 5, -1]])).all(), "Specular wall is not working correctly"
 
     # Test of the thermal wall method using an analytical solution I calculated
     def test_thermal_wall(self):
         testSimulation.velocities = np.array([[2, 4, 6], [3, 1, 3], [5, 5, 1]])
-        testSimulation.thermal_wall([0, 1])
-        assert (testSimulation.velocities == np.array([[11, -6, 7], [3, 1, 3], [5, 5, 1]])).all(), "Thermal wall is not working correctly"
+        testSimulation.thermal_wall((0, 1))
+        assert (testSimulation.velocities == np.array([[12, -4, 6], [3, 1, 3], [5, 5, 1]])).all(), "Thermal wall is not working correctly"
 
     # Tests that particles collide and that the velocity is correct after the collision using an analytical solution I calculated
     def test_particle_collision(self):
@@ -97,11 +97,11 @@ class TestGeneral:
         assert (testSimulation.angular_momentum() == np.array([-60, -120, 100])).all(), "Angular momentum is not being calculated correctly"
 
     # Test if particles have left the box, test if energy is conserved to an appropriate degree 
-    # Walls are assigned randomly with no thermal walls (walls=[1, 0, 1, 1, 0, 1]) as KE is not conserved then, ran with length 1000 over 500 iterations
+    # Walls are assigned randomly with no thermal walls (walls=[1, 0, 1, 1, 0, 1]) as KE is not conserved then, ran with length 100000 over 500 iterations with time step of 10s
     def test_run(self):
         df=pd.read_pickle("Simulation_Data.pkl")
         testSimulation.m = 5.31372501312e-26
         assert len(np.argwhere((df["Position"][500] >= 1000) & (df["Position"][500] < 0))) == 0, "Particles have escaped the box during the simulation"
         meanKineticEnergyBefore = 0.5 * testSimulation.m * np.mean(np.linalg.norm(df["Velocity"][0], axis = 0))**2
         meanKineticEnergyAfter = 0.5 * testSimulation.m * np.mean(np.linalg.norm(df["Velocity"][500], axis=0))**2
-        assert meanKineticEnergyBefore - meanKineticEnergyAfter < 3 * 10**-25, "Kinetic energy is not conserved in the simulation"
+        assert meanKineticEnergyBefore - meanKineticEnergyAfter < 3 * 10**-23, "Kinetic energy is not conserved in the simulation"

@@ -2,7 +2,7 @@
     "N": 500,
     "Time Step": 10,
     "Time Intervals": 500,
-    "Wall Temperature (K)": 500,
+    "Wall Temperature (K)": 50,
     "Gas Temperature (K)": 30,
     "Length of Box": 100000,
     "Boltzmann Constant": 1.380649e-23,

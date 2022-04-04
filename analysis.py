@@ -142,14 +142,14 @@ class Analysis:
         for j in range(3):
             meanVel = [np.mean(self.df["Velocity"][i][:, j]) for i in range(self.size)]
             axs.flat[j].plot(self.df["Time"], meanVel)
-            axs.flat[j].set(xlabel="Time (s)", ylabel=f"Mean of the {components[j]} Component\n of Velocity (m/s)")
+            axs.flat[j].set(xlabel="Time (s)", ylabel=f"Mean of the {components[j]} Component\n of Velocity (pm/s)")
         x = np.linspace(-3, 100, 100)
         r = np.linalg.norm(self.df["Velocity"][0], axis=1)
         params = maxwell.fit(r, floc=0)
         axs[1, 1].plot(x, maxwell.pdf(x, *params), "r-", lw=3, alpha=0.6, label="Maxwell pdf")
         axs[1, 1].hist(r, density=True, histtype="stepfilled", alpha=0.3)
         axs[1, 1].legend(loc="best", frameon=False)
-        axs[1, 1].set(xlabel="Speed (m/s)", ylabel="Normalised Magnitude")
+        axs[1, 1].set(xlabel="Speed (pm/s)", ylabel="Percentage")
         plt.tight_layout()
         plt.savefig("visuals/vel_multiplot.png")
         plt.show()
@@ -168,7 +168,7 @@ class Analysis:
         plt.savefig("visuals/KE_temp_multiplot.png")
         plt.show()
 
+# Example code that could be used to run one of the analysis plots
 if __name__ == "__main__":
     test = Analysis()
-    test.vel_multiplot()
     test.KE_temp_multiplot()
