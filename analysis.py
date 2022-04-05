@@ -4,7 +4,6 @@ import json
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.animation as animation
 from scipy.stats import maxwell
 
@@ -64,8 +63,7 @@ class Analysis:
     # 3D scatter plot animation of the simulation 
     def animate(self):
         iterations = int(self.size)
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection="3d")
+        fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
         scatters = [ax.scatter(self.df["Position"][0][i][0], self.df["Position"][0][i][1], self.df["Position"][0][i][2], c="black") for i in range(self.N)]
         r = [0, self.length]
         for s, e in combinations(np.array(list(product(r, r, r))), 2):

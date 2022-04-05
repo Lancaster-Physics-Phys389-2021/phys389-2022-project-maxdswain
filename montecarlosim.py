@@ -6,7 +6,6 @@ import numpy as np
 from numba import njit
 import pandas as pd
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 # Function to seed NumPy random number generation for Numba
 @njit
@@ -157,8 +156,7 @@ class Simulation:
 
     # 3D scatter plot of the positions of every particle in the simulation at the current point in time with a red outline of the cube
     def plot(self):
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection="3d")
+        fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
         for n in range(self.N):
             ax.scatter(self.positions[n][0], self.positions[n][1], self.positions[n][2], c="black")
         r = [0, self.length]
