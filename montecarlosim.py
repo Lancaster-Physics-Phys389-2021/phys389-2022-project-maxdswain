@@ -118,6 +118,7 @@ class Simulation:
     def run(self):
         self.random_generation()
         tempPos, tempVel = [deepcopy(self.positions)], [deepcopy(self.velocities)]
+        self.progress_bar(0, self.timeIntervals)
         for x in range(self.timeIntervals):
             self.update()
             self.wall_collision_detection()
@@ -128,6 +129,7 @@ class Simulation:
                 self.velocities, self.uniform_angle_generation)
             tempPos.append(deepcopy(self.positions))
             tempVel.append(deepcopy(self.velocities))
+            self.progress_bar(x + 1, self.timeIntervals)
         self.time = [i * self.dT for i in range(self.timeIntervals + 1)]
         df = pd.DataFrame(data={"Time": self.time, "Position": tempPos, "Velocity": tempVel})
         df.to_pickle("Simulation_Data.pkl")
@@ -168,6 +170,12 @@ class Simulation:
         ax.set_zlabel("z position (pm)")
         plt.savefig("visuals/3D_scatter_plot.png")
         plt.show()
+    
+    @staticmethod
+    def progress_bar(progress, total):
+        percentage = 100 * progress / total
+        bar = f"{'█' * int(percentage)}{'-' * (100 - int(percentage))}"
+        print(f"\r|{bar}| {percentage:.2f}%", end="\r")
 
 # Example code that could be used to run a simulation and plot the result of it
 if __name__ == "__main__":

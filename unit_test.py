@@ -8,7 +8,7 @@ testSimulation = Simulation()
 
 
 class TestIntialisation:
-    # Tests that the position and velocities of  N particles in 3D have been intialised correctly and also generated inside the box
+    # Tests that the position and velocities of N particles in 3D have been initialised correctly and also generated inside the box
     def test_random_generation(self):
         testSimulation.length = 5000
         testSimulation.N = 1500
