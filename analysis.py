@@ -16,12 +16,6 @@ def animation_frame(iteration, df, scatters):
         scatters[i]._offsets3d = (df["Position"][iteration][i, 0:1], df["Position"][iteration][i, 1:2], df["Position"][iteration][i, 2:])
     return scatters
 
-# Function used for producing a frame in the 2D scatter plot animation of the simulation
-def animation_frame2D(iteration, df, scatters):
-    for i in range(df["Position"][0].shape[0]):
-        scatters[i]._offsets = ([[df["Position"][iteration][i, 0], df["Position"][iteration][i, 1]]])
-    return scatters
-
 # Function used for animating histogram, uses blitting
 def prepare_animation_hist(bar_container):
     def animation_hist(iteration):
@@ -100,13 +94,21 @@ class Analysis:
         ax.plot(self.df["Time"], T)
         plt.show()
 
+    # Function to setup 2D scatter animation
+    def setup_2D(self):
+        self.scatters_2D = self.ax.scatter(self.df["Position"][0][:, 0], self.df["Position"][0][:, 1], c="black")  # Change to 1:3 for yz ani
+        self.ax.set(xlabel="x position", ylabel="y position")
+        return self.scatters_2D,
+
+    # Function used for producing a frame in the 2D scatter plot animation of the simulation
+    def animation_frame2D(self, iteration):
+        self.scatters_2D.set_offsets(self.df["Position"][iteration][:, :2])  # Change to 1:3 for yz ani
+        return self.scatters_2D,
+
     # 2D scatter plot animation of the simulation
     def animate2D(self):
-        fig, ax = plt.subplots()
-        scatters = [ax.scatter(self.df["Position"][0][i][0], self.df["Position"][0][i][1], c="black") for i in range(self.N)]
-        ax.set_xlabel("x position")
-        ax.set_ylabel("y position")
-        ani = animation.FuncAnimation(fig, animation_frame2D, int(self.size), fargs=(self.df, scatters), blit=False, repeat=True)
+        fig, self.ax = plt.subplots()
+        ani = animation.FuncAnimation(fig, self.animation_frame2D, int(self.size), init_func=self.setup_2D, blit=True, repeat=True)
         writer = animation.FFMpegWriter(fps=30)
         ani.save("visuals/animation2D.mp4", writer=writer)
         plt.show()
@@ -169,4 +171,4 @@ class Analysis:
 # Example code that could be used to run one of the analysis plots
 if __name__ == "__main__":
     test = Analysis()
-    test.KE_temp_multiplot()
+    test.animate2D()
