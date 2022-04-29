@@ -10,12 +10,6 @@ from scipy.stats import maxwell
 # Read data to be analysed
 df = pd.read_pickle("Simulation_Data.pkl")
 
-# Function used for producing a frame in the 3D scatter plot animation of the simulation
-def animation_frame(iteration, df, scatters):
-    for i in range(df["Position"][0].shape[0]):
-        scatters[i]._offsets3d = (df["Position"][iteration][i, 0:1], df["Position"][iteration][i, 1:2], df["Position"][iteration][i, 2:])
-    return scatters
-
 # Function used for animating histogram, uses blitting
 def prepare_animation_hist(bar_container):
     def animation_hist(iteration):
@@ -54,23 +48,29 @@ class Analysis:
         self.k = config["Boltzmann Constant"]
         self.length = config["Length of Box"]
 
-    # 3D scatter plot animation of the simulation 
+    # Function to setup 3D scatter plot animation
+    def setup_animation(self):
+        self.scatters = self.ax.scatter(self.df["Position"][0][:, 0], self.df["Position"][0][:, 1], self.df["Position"][0][:, 2], c="black", alpha=1)
+        return self.scatters,
+
+    # Function used for producing a frame in the 3D scatter plot animation of the simulation
+    def animation_frame(self, iteration):
+        self.scatters.set_offsets(self.df["Position"][iteration][:, :2])
+        self.scatters.set_3d_properties(self.df["Position"][iteration][:, 2], "z")
+        return self.scatters,
+
+    # 3D scatter plot animation of the simulation
     def animate(self):
-        iterations = int(self.size)
-        fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-        scatters = [ax.scatter(self.df["Position"][0][i][0], self.df["Position"][0][i][1], self.df["Position"][0][i][2], c="black") for i in range(self.N)]
+        fig, self.ax = plt.subplots(subplot_kw={"projection": "3d"})
         r = [0, self.length]
         for s, e in combinations(np.array(list(product(r, r, r))), 2):
             if np.sum(np.abs(s - e)) == r[1] - r[0]:
-                ax.plot3D(*zip(s, e), color="red")
-        ax.set_xlabel("x position")
-        ax.set_ylabel("y position")
-        ax.set_zlabel("z position")
-        ax.view_init(25, 10)
-        ani = animation.FuncAnimation(fig, animation_frame, iterations, fargs=(self.df, scatters), blit=False, repeat=True)
+                self.ax.plot3D(*zip(s, e), color="red")
+        self.ax.set(xlabel="x position", ylabel="y position", zlabel="z position")
+        self.ax.view_init(30, 50)
+        ani = animation.FuncAnimation(fig, self.animation_frame, int(self.size), init_func=self.setup_animation, blit=True, repeat=True)
         writer = animation.FFMpegWriter(fps=30)
         ani.save("visuals/animation.mp4", writer=writer)
-        plt.show()
 
     # Plots the mean velocity of one component (same as fluid velocity as mass of all particles is the same) vs time
     def plot_mean_vel(self):
@@ -171,4 +171,4 @@ class Analysis:
 # Example code that could be used to run one of the analysis plots
 if __name__ == "__main__":
     test = Analysis()
-    test.animate2D()
+    test.animate()
