@@ -98,7 +98,7 @@ class TestGeneral:
     # Test if particles have left the box, test if energy is conserved to an appropriate degree 
     # Walls are assigned randomly with no thermal walls (walls=[1, 0, 1, 1, 0, 1]) as KE is not conserved then, ran with length 100000 over 500 iterations with time step of 10s
     def test_run(self):
-        df=pd.read_pickle("Simulation_Data.pkl")
+        df = pd.read_pickle("Simulation_Data.pkl")
         testSimulation.m = 5.31372501312e-26
         assert len(np.argwhere((df["Position"][500] >= 1000) & (df["Position"][500] < 0))) == 0, "Particles have escaped the box during the simulation"
         meanKineticEnergyBefore = 0.5 * testSimulation.m * np.mean(np.linalg.norm(df["Velocity"][0], axis = 0))**2

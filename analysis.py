@@ -7,19 +7,6 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from scipy.stats import maxwell
 
-# Read data to be analysed
-df = pd.read_pickle("Simulation_Data.pkl")
-
-# Function used for animating histogram, uses blitting
-def prepare_animation_hist(bar_container):
-    def animation_hist(iteration):
-        r = np.linalg.norm(df["Velocity"][iteration], axis=1)
-        n, _ = np.histogram(r)
-        for count, rect in zip(n, bar_container.patches):
-            rect.set_height(count)
-        return bar_container.patches
-    return animation_hist
-
 
 class Analysis:
     """
@@ -39,7 +26,7 @@ class Analysis:
         Boltzmann constant in standard SI units.
     """
     def __init__(self):
-        self.df = df
+        self.df = pd.read_pickle("Simulation_Data.pkl")
         self.N = self.df["Position"][0].shape[0]
         self.size = self.df.shape[0]
         with open("config.json", "r") as f:
@@ -124,12 +111,22 @@ class Analysis:
         ax.legend(loc="best", frameon=False)
         plt.show()
 
+    # Function used for animating histogram, uses blitting
+    def prepare_animation_hist(self, bar_container):
+        def animation_hist(iteration):
+            r = np.linalg.norm(self.df["Velocity"][iteration], axis=1)
+            n, _ = np.histogram(r)
+            for count, rect in zip(n, bar_container.patches):
+                rect.set_height(count)
+            return bar_container.patches
+        return animation_hist
+
     # Animated histogram of speeds over time
     def animate_hist(self):
         fig, ax = plt.subplots()
         r = np.linalg.norm(self.df["Velocity"][0], axis=1)
         _, _, bar_container=ax.hist(r, alpha=0.3)
-        ani = animation.FuncAnimation(fig, prepare_animation_hist(bar_container), int(self.size), repeat=True, blit=True)
+        ani = animation.FuncAnimation(fig, self.prepare_animation_hist(bar_container), int(self.size), repeat=True, blit=True)
         writer = animation.FFMpegWriter(fps=30)
         ani.save("visuals/animationHist.mp4", writer=writer)
         plt.ylim(ymax=185)
