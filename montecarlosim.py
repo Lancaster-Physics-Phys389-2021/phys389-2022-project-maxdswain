@@ -159,8 +159,8 @@ class Simulation:
 
     # 3D scatter plot of the positions of every particle in the simulation at the current point in time with a red outline of the cube
     def plot(self) -> None:
-        fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-        ax.scatter(self.positions[:, 0], self.positions[:, 1], self.positions[:, 2], c="black")
+        _, ax = plt.subplots(subplot_kw={"projection": "3d"})
+        ax.scatter(self.positions[:, 0], self.positions[:, 1], self.positions[:, 2], c="black", alpha=1)
         r = [0, self.length]
         for s, e in combinations(np.array(list(product(r, r, r))), 2):
             if np.sum(np.abs(s - e)) == r[1] - r[0]:

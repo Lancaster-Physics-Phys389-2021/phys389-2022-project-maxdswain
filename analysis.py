@@ -74,7 +74,7 @@ class Analysis:
 
     # Plots the temperature of the system vs time using equipartition theorem
     def plot_temp(self):
-        fig, ax = plt.subplots()
+        _, ax = plt.subplots()
         meanVel = np.array([np.mean(self.df["Velocity"][i][:]) for i in range(self.size)])
         meanKEOverM = np.array([0.5 * np.mean(np.linalg.norm(self.df["Velocity"][i], axis=0))**2 for i in range(self.size)])
         T = 2/3 * self.mass / self.k * (meanKEOverM - 1/2 * np.linalg.norm(meanVel, axis=0))
@@ -134,7 +134,7 @@ class Analysis:
     
     # Plots a multiplot of all components of the mean velocity as well as a histogram of the initial distribution of speeds
     def vel_multiplot(self):
-        fig, axs = plt.subplots(2, 2)
+        _, axs = plt.subplots(2, 2)
         components=["x", "y", "z"]
         for j in range(3):
             meanVel = [np.mean(self.df["Velocity"][i][:, j]) for i in range(self.size)]
@@ -153,15 +153,15 @@ class Analysis:
 
     # Plots a multiplot of kinetic energy and temperature
     def KE_temp_multiplot(self):
-        fig, axs = plt.subplots(2, sharex=True)
+        _, axs = plt.subplots(2, sharex=True)
         meanKE = [0.5 * self.mass * np.mean(np.linalg.norm(self.df["Velocity"][i], axis=0))**2 for i in range(self.size)]
         axs[0].set(ylabel="Mean Kinetic Energy (J)")
         axs[0].plot(self.df["Time"], meanKE)
         meanVel = np.array([np.mean(self.df["Velocity"][i][:]) for i in range(self.size)])
         meanKEOverM = np.array([0.5 * np.mean(np.linalg.norm(self.df["Velocity"][i], axis=0))**2 for i in range(self.size)])
-        T = 2/3 * self.mass / self.k * (meanKEOverM - 1/2 * np.linalg.norm(meanVel, axis=0))
+        temperature = 2/3 * self.mass / self.k * (meanKEOverM - 1/2 * np.linalg.norm(meanVel, axis=0))
         axs[1].set(xlabel="Time (s)", ylabel="Temperature (K)")
-        axs[1].plot(self.df["Time"], T)
+        axs[1].plot(self.df["Time"], temperature)
         plt.savefig("visuals/KE_temp_multiplot.png")
         plt.show()
 
