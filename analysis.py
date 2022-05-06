@@ -37,7 +37,7 @@ class Analysis:
 
     # Function to setup 3D scatter plot animation
     def setup_animation(self):
-        self.scatters = self.ax.scatter(self.df["Position"][0][:, 0], self.df["Position"][0][:, 1], self.df["Position"][0][:, 2], c="black", alpha=1)
+        self.scatters = self.ax.scatter(self.df["Position"][0][:, 0], self.df["Position"][0][:, 1], self.df["Position"][0][:, 2], c="black", alpha=0.6)
         return self.scatters,
 
     # Function used for producing a frame in the 3D scatter plot animation of the simulation
@@ -53,11 +53,9 @@ class Analysis:
         for s, e in combinations(np.array(list(product(r, r, r))), 2):
             if np.sum(np.abs(s - e)) == r[1] - r[0]:
                 self.ax.plot3D(*zip(s, e), color="red")
-        self.ax.set(xlabel="x position", ylabel="y position", zlabel="z position")
-        self.ax.view_init(30, 50)
-        ani = animation.FuncAnimation(fig, self.animation_frame, int(self.size), init_func=self.setup_animation, blit=True, repeat=True)
-        writer = animation.FFMpegWriter(fps=30)
-        ani.save("visuals/animation.mp4", writer=writer)
+        self.ax.set(xlabel="x position (pm)", ylabel="y position (pm)", zlabel="z position (pm)")
+        ani = animation.FuncAnimation(fig, self.animation_frame, self.size, init_func=self.setup_animation, blit=True, repeat=True)
+        ani.save("visuals/animation.mp4", writer=animation.FFMpegWriter(fps=60))
 
     # Plots the mean velocity of one component (same as fluid velocity as mass of all particles is the same) vs time
     def plot_mean_vel(self):
@@ -84,7 +82,6 @@ class Analysis:
     # Function to setup 2D scatter animation
     def setup_2D(self):
         self.scatters_2D = self.ax.scatter(self.df["Position"][0][:, 0], self.df["Position"][0][:, 1], c="black")  # Change to 1:3 for yz ani
-        self.ax.set(xlabel="x position", ylabel="y position")
         return self.scatters_2D,
 
     # Function used for producing a frame in the 2D scatter plot animation of the simulation
@@ -95,9 +92,9 @@ class Analysis:
     # 2D scatter plot animation of the simulation
     def animate2D(self):
         fig, self.ax = plt.subplots()
-        ani = animation.FuncAnimation(fig, self.animation_frame2D, int(self.size), init_func=self.setup_2D, blit=True, repeat=True)
-        writer = animation.FFMpegWriter(fps=30)
-        ani.save("visuals/animation2D.mp4", writer=writer)
+        self.ax.set(xlabel="x position (pm)", ylabel="y position (pm)")
+        ani = animation.FuncAnimation(fig, self.animation_frame2D, self.size, init_func=self.setup_2D, blit=True, repeat=True)
+        ani.save("visuals/animation2D.mp4", writer=animation.FFMpegWriter(fps=60))
         plt.show()
 
     # Plots a histogram of the speed in the simulation against a Maxwell pdf plot for a given time in the simulation
@@ -126,9 +123,8 @@ class Analysis:
         fig, ax = plt.subplots()
         r = np.linalg.norm(self.df["Velocity"][0], axis=1)
         _, _, bar_container=ax.hist(r, alpha=0.3)
-        ani = animation.FuncAnimation(fig, self.prepare_animation_hist(bar_container), int(self.size), repeat=True, blit=True)
-        writer = animation.FFMpegWriter(fps=30)
-        ani.save("visuals/animationHist.mp4", writer=writer)
+        ani = animation.FuncAnimation(fig, self.prepare_animation_hist(bar_container), self.size, repeat=True, blit=True)
+        ani.save("visuals/animationHist.mp4", writer=animation.FFMpegWriter(fps=30))
         plt.ylim(ymax=185)
         plt.show()
     

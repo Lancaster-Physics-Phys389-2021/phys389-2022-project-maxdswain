@@ -34,7 +34,7 @@ class Simulation:
         Length of the sides of the box in pm.
     k: float
         Boltzmann constant in standard SI units.
-    m: float
+    mass: float
         Mass of the particles in the simulation in kg.
     effectiveDiameter: float
         Effective diameter of the particles in the simulation in pm.
@@ -52,7 +52,7 @@ class Simulation:
         self.T = config["Gas Temperature (K)"]
         self.length = config["Length of Box"]
         self.k = config["Boltzmann Constant"]
-        self.m = config["Mass"]
+        self.mass = config["Mass"]
         self.effectiveDiameter = config["Effective Diameter"]
         self.walls = config["Walls"]
         self.Ne = 1 * self.N  # Number of effective particles
@@ -76,7 +76,7 @@ class Simulation:
     # Initialise positions using a random distribution inside the cube and velocities using a Maxwell distribution
     def random_generation(self) -> None:
         self.positions = self.rng.integers(low=0, high=self.length + 1, size=(self.N, 3)).astype(float)  #randomly generated positions of N particles in pm
-        self.speeds = self.rng.normal(0.0, np.sqrt(self.k * self.T / self.m) / 3, self.N)
+        self.speeds = self.rng.normal(0.0, np.sqrt(self.k * self.T / self.mass) / 3, self.N)
         self.velocities = np.array([self.speeds[i] * self.uniform_angle_generation() for i in range(self.N)]).reshape(self.N, 3)
 
     def mean_path_length(self) -> float:
@@ -149,18 +149,18 @@ class Simulation:
             self.positions[indices] -= self.length
 
     def linear_momentum(self) -> npt.NDArray[np.float64]:
-        return self.m * np.sum(self.velocities, axis=0)
+        return self.mass * np.sum(self.velocities, axis=0)
 
     def angular_momentum(self) -> npt.NDArray[np.float64]:
-        return np.sum(np.cross(self.positions, self.m * self.velocities), axis=0)
+        return np.sum(np.cross(self.positions, self.mass * self.velocities), axis=0)
 
     def mean_kinetic_energy(self) -> float:
-        return 0.5 * self.m * np.mean(np.linalg.norm(self.velocities, axis=0))**2
+        return 0.5 * self.mass * np.mean(np.linalg.norm(self.velocities, axis=0))**2
 
     # 3D scatter plot of the positions of every particle in the simulation at the current point in time with a red outline of the cube
     def plot(self) -> None:
         _, ax = plt.subplots(subplot_kw={"projection": "3d"})
-        ax.scatter(self.positions[:, 0], self.positions[:, 1], self.positions[:, 2], c="black", alpha=1)
+        ax.scatter(self.positions[:, 0], self.positions[:, 1], self.positions[:, 2], c="black", depthshade=False)
         r = [0, self.length]
         for s, e in combinations(np.array(list(product(r, r, r))), 2):
             if np.sum(np.abs(s - e)) == r[1] - r[0]:
