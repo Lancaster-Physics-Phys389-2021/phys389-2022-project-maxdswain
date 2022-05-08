@@ -81,9 +81,9 @@ class Simulation:
 
     # Initialise positions using a random distribution inside the cube and velocities using a Maxwell distribution
     def random_generation(self) -> None:
-        self.positions = self.rng.integers(low=0, high=self.length + 1, size=(self.N, 3), dtype=np.float64)
-        speeds = self.rng.normal(0.0, np.sqrt(self.k * self.T / self.mass) / 3, self.N)
-        self.velocities = np.array([speeds[i] * self.uniform_angle_generation() for i in range(self.N)]).reshape(self.N, 3)
+        self.positions = self.rng.integers(0, self.length + 1, (self.N, 3)).astype(float)
+        speeds = self.rng.normal(0.0, np.sqrt(self.k * self.T / self.mass) / 3, (self.N,))
+        self.velocities = np.array([speeds[i] * self.uniform_angle_generation() for i in range(self.N)])
 
     def mean_path_length(self) -> float:
         return 1 / (np.sqrt(2) * np.pi * (self.effectiveDiameter**2) * self.numberDensity)
