@@ -1,10 +1,10 @@
-from itertools import product, combinations
 import json
+from itertools import combinations, product
 
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 from scipy.stats import maxwell
 
 
@@ -25,6 +25,7 @@ class Analysis:
     k: float
         Boltzmann constant in standard SI units.
     """
+
     def __init__(self):
         self.df = pd.read_pickle("Simulation_Data.pkl")
         self.N = self.df["Position"][0].shape[0]
@@ -160,6 +161,7 @@ class Analysis:
         axs[1].plot(self.df["Time"], temperature)
         plt.savefig("visuals/KE_temp_multiplot.png")
         plt.show()
+
 
 # Example code that could be used to run one of the analysis plots
 if __name__ == "__main__":

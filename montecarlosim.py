@@ -1,12 +1,14 @@
-from itertools import product, combinations
 import json
+from collections.abc import Callable
 from copy import deepcopy
+from itertools import combinations, product
 
+import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
-from numba import njit
 import pandas as pd
-import matplotlib.pyplot as plt
+from numba import njit
+
 
 # Function to seed NumPy random number generation for Numba
 @njit
@@ -15,7 +17,6 @@ def set_seed(value: int) -> None:
 
 
 class Simulation:
-    __slots__ = "N", "dT", "timeIntervals", "Tw", "T", "length", "k", "mass", "effectiveDiameter", "walls", "Ne", "numberDensity", "rng", "cells", "cellVolume", "positions", "velocities"
     """
     Class intialising and running the 3D particle in a box Monte Carlo simulation as well as outputting data.
     
@@ -43,6 +44,10 @@ class Simulation:
         List of ints representing the 6 walls of the cube, 0 - periodic, 1 - specular, 2 - thermal.
         The list is arranged in the following way [-x, +x, -y, +y, -z, +z]
     """
+
+    __slots__ = ("N", "dT", "timeIntervals", "Tw", "T", "length", "k", "mass", "effectiveDiameter",  
+                 "walls", "Ne", "numberDensity", "rng", "cells", "cellVolume", "positions", "velocities")
+
     def __init__(self) -> None:
         with open("config.json", "r") as f:
             config = json.load(f)
@@ -58,7 +63,7 @@ class Simulation:
         self.walls = config["Walls"]
         self.Ne = 1 * self.N  # Number of effective particles
         self.numberDensity = self.N / self.length**3
-        self.rng = np.random.default_rng(seed=11) # Seeding rng in general python code
+        self.rng = np.random.default_rng(seed=11)  # Seeding rng in general python code
         set_seed(11)  # Seeding rng for Numba
         # Calculating the largest possible value for the width of the cells given that it has to be smaller than the mean free path length
         deltaZ = np.max([num for num in range(1, self.length) if self.length % num == 0 and num < self.mean_path_length()])
@@ -76,7 +81,7 @@ class Simulation:
 
     # Initialise positions using a random distribution inside the cube and velocities using a Maxwell distribution
     def random_generation(self) -> None:
-        self.positions = self.rng.integers(low=0, high=self.length + 1, size=(self.N, 3)).astype(float)  #randomly generated positions of N particles in pm
+        self.positions = self.rng.integers(low=0, high=self.length + 1, size=(self.N, 3), dtype=np.float64)
         speeds = self.rng.normal(0.0, np.sqrt(self.k * self.T / self.mass) / 3, self.N)
         self.velocities = np.array([speeds[i] * self.uniform_angle_generation() for i in range(self.N)]).reshape(self.N, 3)
 
@@ -98,7 +103,11 @@ class Simulation:
     # Runs Monte-Carlo determining the collisions that take place
     @staticmethod
     @njit
-    def particle_collision_detection(cells: npt.NDArray[np.int32], positions: npt.NDArray[np.float64], effectiveDiameter: float, Ne: int, dT: float, cellVolume: float, velocities: npt.NDArray[np.float64], uniform_angle_generation) -> npt.NDArray[np.float64]:
+    def particle_collision_detection(
+            cells: npt.NDArray[np.int32], positions: npt.NDArray[np.float64],
+            effectiveDiameter: float, Ne: int,
+            dT: float, cellVolume: float,
+            velocities: npt.NDArray[np.float64], uniform_angle_generation: Callable[[], npt.NDArray[np.float64]]) -> npt.NDArray[np.float64]:
         for cell in cells:
             posZ = positions[:, 2]  # Taking only z components as cells are divided in z axis
             particlesInCell = np.argwhere((posZ >= cell[0]) & (posZ < cell[1]))
@@ -137,15 +146,16 @@ class Simulation:
         df.to_pickle("Simulation_Data.pkl")
 
     def specular_surface(self, indices: tuple[int, int]) -> None:
-        self.velocities[indices] =- self.velocities[indices]
+        self.velocities[indices] = -self.velocities[indices]
 
     def thermal_wall(self, indices: tuple[int, int]) -> None:
-        self.velocities[indices] =- np.sign(self.velocities[indices]) * abs(np.sqrt(self.Tw) * self.rng.normal(0, 1))
+        self.velocities[indices] = -np.sign(self.velocities[indices]) * abs(np.sqrt(self.Tw) * self.rng.normal(0, 1))
         for i in [x for x in range(3) if x != indices[1]]:
             self.velocities[indices[0]][i] = np.sqrt(-2 * self.Tw * np.log(self.rng.random(None)))
 
     def periodic_boundary(self, indices: tuple[int, int]) -> None:
-        if self.velocities[indices] < 0: self.positions[indices] += self.length
+        if self.velocities[indices] < 0:
+            self.positions[indices] += self.length
         else:
             self.positions[indices] -= self.length
 
@@ -175,6 +185,7 @@ class Simulation:
         percentage = 100 * progress / total
         bar = f"{'█' * int(percentage)}{'-' * (100 - int(percentage))}"
         print(f"\r|{bar}| {percentage:.2f}%", end="\r")
+
 
 # Example code that could be used to run a simulation and plot the result of it
 if __name__ == "__main__":
